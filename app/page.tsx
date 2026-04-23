@@ -1,65 +1,102 @@
-import Image from "next/image";
+import WaitlistForm from '@/components/WaitlistForm'
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-slate-950 text-white">
+      {/* Hero */}
+      <div className="max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
+        <div className="inline-block bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm px-4 py-1 rounded-full mb-6">
+          Built by a hydropower engineer, for hydropower engineers
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <h1 className="text-5xl font-bold leading-tight mb-6">
+          Generate your AEPC-compliant DFS{' '}
+          <span className="text-blue-400">in under an hour</span>
+        </h1>
+        <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+          HydroStack replaces the 13-year-old Chitrakar Excel+AutoCAD toolkit. 
+          Hydrology, intake, penstock, anchor blocks, energy table, financial model — 
+          one flow, one PDF, submission ready.
+        </p>
+        <WaitlistForm />
+      </div>
+
+      {/* What it replaces */}
+      <div className="max-w-4xl mx-auto px-6 py-16 border-t border-slate-800">
+        <h2 className="text-2xl font-bold text-center mb-12 text-slate-300">
+          Everything in one workflow
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            'Hydrology (Q40/Q80)',
+            'Intake & Settling Basin',
+            'Headrace Canal/Pipe',
+            'Penstock (IS codes)',
+            'Anchor Blocks (IS 5330)',
+            'Powerhouse Sizing',
+            'Energy Table',
+            'Financial Model (IRR/NPV)',
+            'AEPC-format DFS PDF',
+            'Editable DXF Drawings',
+            'Nepali Month Output',
+            'AI Copilot (coming soon)',
+          ].map((feature) => (
+            <div
+              key={feature}
+              className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-sm text-slate-300"
+            >
+              ✓ {feature}
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
-  );
+      </div>
+
+      {/* Pricing */}
+      <div className="max-w-4xl mx-auto px-6 py-16 border-t border-slate-800">
+        <h2 className="text-2xl font-bold text-center mb-4 text-slate-300">Pricing</h2>
+        <p className="text-center text-slate-500 mb-12">
+          Less than 1.5% of a single DFS consultancy fee.
+        </p>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <div className="text-slate-400 text-sm mb-2">Solo</div>
+            <div className="text-3xl font-bold mb-1">NPR 2,500<span className="text-lg font-normal text-slate-400">/mo</span></div>
+            <div className="text-slate-500 text-sm mb-6">or NPR 25,000/year</div>
+            <ul className="text-sm text-slate-400 space-y-2">
+              <li>✓ 10 active projects</li>
+              <li>✓ PDF + DXF export</li>
+              <li>✓ 1 seat</li>
+            </ul>
+          </div>
+          <div className="bg-blue-600 border border-blue-500 rounded-xl p-6 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-400 text-blue-950 text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
+            <div className="text-blue-100 text-sm mb-2">Studio</div>
+            <div className="text-3xl font-bold mb-1">NPR 9,000<span className="text-lg font-normal text-blue-200">/mo</span></div>
+            <div className="text-blue-300 text-sm mb-6">or NPR 90,000/year</div>
+            <ul className="text-sm text-blue-100 space-y-2">
+              <li>✓ Unlimited projects</li>
+              <li>✓ PDF + DXF + Excel</li>
+              <li>✓ 5 seats</li>
+              <li>✓ Version history</li>
+            </ul>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <div className="text-slate-400 text-sm mb-2">Enterprise</div>
+            <div className="text-3xl font-bold mb-1">NPR 25,000<span className="text-lg font-normal text-slate-400">/mo</span></div>
+            <div className="text-slate-500 text-sm mb-6">or NPR 250,000/year</div>
+            <ul className="text-sm text-slate-400 space-y-2">
+              <li>✓ Unlimited projects</li>
+              <li>✓ 20 seats + SSO</li>
+              <li>✓ API access</li>
+              <li>✓ White-label reports</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="border-t border-slate-800 py-8 text-center text-slate-600 text-sm">
+        Built by Angel Mainali — Civil Engineer, Shyam Khola HPP 7.2 MW
+      </div>
+    </main>
+  )
 }
