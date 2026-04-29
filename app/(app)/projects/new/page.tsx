@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Loader2, Zap, Droplets, MapPin } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 const NEPAL_DISTRICTS = [
@@ -19,12 +19,42 @@ const NEPAL_DISTRICTS = [
   'Surkhet','Syangja','Tanahu','Taplejung','Tehrathum','Udayapur','Western Rukum',
 ]
 
+function FieldLabel({ children, unit }: { children: React.ReactNode; unit?: string }) {
+  return (
+    <label className="flex items-baseline justify-between mb-1.5">
+      <span
+        className="text-[10px] tracking-[0.18em] uppercase text-stone-600 font-medium"
+        style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+      >
+        {children}
+      </span>
+      {unit && (
+        <span
+          className="text-[10px] text-stone-400 tracking-wide"
+          style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+        >
+          [{unit}]
+        </span>
+      )}
+    </label>
+  )
+}
+
+const inputCls =
+  'w-full bg-white border border-stone-300 text-stone-900 placeholder:text-stone-400 px-3.5 py-2.5 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition-all rounded-none'
+
 export default function NewProjectPage() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({ name: '', river: '', district: '', capacity_kw: '', standard: 'AEPC_NP' })
+  const [form, setForm] = useState({
+    name: '',
+    river: '',
+    district: '',
+    capacity_kw: '',
+    standard: 'AEPC_NP',
+  })
 
   function update(field: string, value: string) {
     setForm(f => ({ ...f, [field]: value }))
@@ -38,16 +68,21 @@ export default function NewProjectPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('org_id')
+      .eq('id', user.id)
+      .single()
+
     let orgId = profile?.org_id
 
     if (!orgId) {
-  const { data: newOrgId, error: wsErr } = await supabase.rpc('create_user_workspace', {
-    workspace_name: user.email?.split('@')[0] + "'s workspace"
-  })
-  if (wsErr) { setError(wsErr.message); setLoading(false); return }
-  orgId = newOrgId
-}
+      const { data: newOrgId, error: wsErr } = await supabase.rpc('create_user_workspace', {
+        workspace_name: (user.email?.split('@')[0] ?? 'My') + "'s workspace",
+      })
+      if (wsErr) { setError(wsErr.message); setLoading(false); return }
+      orgId = newOrgId
+    }
 
     const { data: project, error: projErr } = await supabase
       .from('projects')
@@ -61,85 +96,192 @@ export default function NewProjectPage() {
         status: 'draft',
         created_by: user.id,
       })
-      .select().single()
+      .select()
+      .single()
 
     if (projErr) { setError(projErr.message); setLoading(false); return }
     router.push(`/projects/${project.id}`)
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="mb-8">
-        <Link href="/projects" className="inline-flex items-center gap-1.5 text-white/40 hover:text-white/70 text-sm transition-colors mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          Back to projects
-        </Link>
-        <h1 className="text-white font-semibold text-2xl tracking-tight">New Project</h1>
-        <p className="text-white/40 text-sm mt-1">Set up your hydropower site details to begin the DFS workflow.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-white/60 text-sm font-medium mb-2">Project Name <span className="text-emerald-500">*</span></label>
-          <input
-            type="text"
-            placeholder="e.g. Shyam Khola HPP — DFS 2026"
-            value={form.name}
-            onChange={e => update('name', e.target.value)}
-            required
-            className="w-full bg-white/[0.04] border border-white/10 text-white placeholder-white/20 rounded-xl py-3 px-4 text-sm outline-none focus:border-emerald-500/50 transition-all"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-2"><Droplets className="w-3.5 h-3.5 inline mr-1 text-emerald-400" />River Name</label>
-            <input type="text" placeholder="e.g. Shyam Khola" value={form.river} onChange={e => update('river', e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/10 text-white placeholder-white/20 rounded-xl py-3 px-4 text-sm outline-none focus:border-emerald-500/50 transition-all" />
-          </div>
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-2"><MapPin className="w-3.5 h-3.5 inline mr-1 text-emerald-400" />District</label>
-            <select value={form.district} onChange={e => update('district', e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/10 text-white rounded-xl py-3 px-4 text-sm outline-none focus:border-emerald-500/50 transition-all appearance-none">
-              <option value="" className="bg-[#0d1210]">Select district</option>
-              {NEPAL_DISTRICTS.map(d => <option key={d} value={d} className="bg-[#0d1210]">{d}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-2"><Zap className="w-3.5 h-3.5 inline mr-1 text-emerald-400" />Installed Capacity (kW)</label>
-            <input type="number" placeholder="e.g. 7200" value={form.capacity_kw} onChange={e => update('capacity_kw', e.target.value)} min="0" step="0.1"
-              className="w-full bg-white/[0.04] border border-white/10 text-white placeholder-white/20 rounded-xl py-3 px-4 text-sm outline-none focus:border-emerald-500/50 transition-all" />
-          </div>
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-2">Design Standard</label>
-            <select value={form.standard} onChange={e => update('standard', e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/10 text-white rounded-xl py-3 px-4 text-sm outline-none focus:border-emerald-500/50 transition-all appearance-none">
-              <option value="AEPC_NP" className="bg-[#0d1210]">AEPC Nepal (2014)</option>
-              <option value="MNRE_IN" className="bg-[#0d1210]">MNRE India</option>
-              <option value="GENERIC" className="bg-[#0d1210]">Generic</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-xl p-4">
-          <p className="text-emerald-400/80 text-xs leading-relaxed">
-            <strong className="text-emerald-400">AEPC Nepal (2014)</strong> applies AEPC Micro Hydro Standard 2014 guidelines — settling basin grain sizes, IS 5330 anchor block checks, and the AEPC DFS chapter format.
+    <div
+      className="min-h-full bg-stone-50"
+      style={{ fontFamily: 'var(--font-body), system-ui, sans-serif' }}
+    >
+      {/* Page header */}
+      <div className="border-b border-stone-200 bg-white px-8 py-6">
+        <div className="max-w-2xl mx-auto">
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-1.5 text-stone-500 hover:text-stone-800 text-sm transition-colors mb-4"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to projects
+          </Link>
+          <p
+            className="text-[10px] tracking-[0.2em] uppercase text-stone-500 mb-1 font-medium"
+            style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+          >
+            §1 — Project Setup
+          </p>
+          <h1
+            className="text-3xl text-stone-900"
+            style={{
+              fontFamily: 'var(--font-display), Georgia, serif',
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            New Project
+          </h1>
+          <p className="text-stone-500 text-sm mt-1.5">
+            Site details used across all calculation modules.
           </p>
         </div>
+      </div>
 
-        {error && <p className="text-red-400 text-sm bg-red-500/10 rounded-xl px-4 py-3">{error}</p>}
+      <div className="max-w-2xl mx-auto px-8 py-8">
+        <form onSubmit={handleSubmit}>
 
-        <div className="flex gap-3 pt-2">
-          <Link href="/projects" className="flex-1 text-center py-3 rounded-xl border border-white/10 text-white/50 hover:text-white/70 text-sm font-medium transition-all">Cancel</Link>
-          <button type="submit" disabled={loading || !form.name}
-            className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl py-3 text-sm font-semibold transition-all">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Project'}
-          </button>
-        </div>
-      </form>
+          {/* Project name */}
+          <div className="bg-white border border-stone-200 p-6 mb-4">
+            <FieldLabel>Project Name *</FieldLabel>
+            <input
+              type="text"
+              placeholder="e.g. Shyam Khola HPP — DFS 2026"
+              value={form.name}
+              onChange={e => update('name', e.target.value)}
+              required
+              className={inputCls}
+            />
+            <p
+              className="mt-2 text-[10px] text-stone-400"
+              style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+            >
+              This appears on the DFS title block and all exported drawings.
+            </p>
+          </div>
+
+          {/* River + District */}
+          <div className="bg-white border border-stone-200 p-6 mb-4">
+            <p
+              className="text-[10px] tracking-[0.18em] uppercase text-stone-500 font-medium mb-4"
+              style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+            >
+              Site Location
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FieldLabel>River / Khola</FieldLabel>
+                <input
+                  type="text"
+                  placeholder="e.g. Shyam Khola"
+                  value={form.river}
+                  onChange={e => update('river', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <FieldLabel>District</FieldLabel>
+                <select
+                  value={form.district}
+                  onChange={e => update('district', e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">Select district</option>
+                  {NEPAL_DISTRICTS.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Technical params */}
+          <div className="bg-white border border-stone-200 p-6 mb-4">
+            <p
+              className="text-[10px] tracking-[0.18em] uppercase text-stone-500 font-medium mb-4"
+              style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+            >
+              Technical Parameters
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FieldLabel unit="kW">Installed Capacity</FieldLabel>
+                <input
+                  type="number"
+                  placeholder="7200"
+                  value={form.capacity_kw}
+                  onChange={e => update('capacity_kw', e.target.value)}
+                  min="0"
+                  step="0.1"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <FieldLabel>Design Standard</FieldLabel>
+                <select
+                  value={form.standard}
+                  onChange={e => update('standard', e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="AEPC_NP">AEPC Nepal 2014</option>
+                  <option value="MNRE_IN">MNRE India (AHEC-IITR)</option>
+                  <option value="GENERIC">Generic</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Standard note */}
+          <div
+            className="bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6 text-[13px] text-emerald-900 leading-relaxed"
+          >
+            <span
+              className="font-medium"
+              style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+            >
+              AEPC Nepal 2014:
+            </span>{' '}
+            Applies AEPC Reference Micro-Hydro Power Standard 2014 — settling basin grain
+            sizes (0.2 mm for H &gt; 100 m, 0.3 mm for H &lt; 100 m), IS 5330 anchor block
+            stability checks, IS 11625 penstock hydraulic design, and the AEPC DFS chapter
+            format. Correct for all Nepal projects requiring AEPC / DoED approval.
+          </div>
+
+          {error && (
+            <div
+              className="bg-red-50 border border-red-200 px-5 py-4 mb-6 text-sm text-red-800"
+              style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+            >
+              Error: {error}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <Link
+              href="/projects"
+              className="flex-1 text-center py-3 border border-stone-300 text-stone-600 hover:text-stone-900 hover:border-stone-400 text-sm font-medium transition-all"
+            >
+              Cancel
+            </Link>
+            <button
+              type="submit"
+              disabled={loading || !form.name}
+              className="flex-1 flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 text-sm font-medium tracking-wide transition-colors"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating…
+                </>
+              ) : (
+                'Create Project →'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

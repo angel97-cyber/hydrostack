@@ -56,7 +56,7 @@ export default function Home() {
 
               <p className="text-base text-stone-600 max-w-2xl mb-10 leading-relaxed">
                 Submit your DFS in under an hour, not three weeks. Built by a practising
-                hydropower engineer for the engineers who carry this country's renewable
+                hydropower engineer for the engineers who carry this country&apos;s renewable
                 targets on their backs.
               </p>
 
