@@ -37,7 +37,6 @@ const modules = (projectId: string): ModuleDef[] => [
     num: '02',
     label: 'Intake & Settling Basin',
     icon: FlaskConical,
-    // ← CHANGED: ready: true + href added (was ready: false, no href)
     desc: 'Camp settling criterion, Stokes Vs, Kirschmer rack losses. Grain size from AEPC DFS Table 3.1.',
     cite: 'AEPC DFS 2014 §3.3.4 · AHEC §8.8',
     ready: true,
@@ -48,9 +47,11 @@ const modules = (projectId: string): ModuleDef[] => [
     num: '03',
     label: 'Headrace & Forebay',
     icon: Droplets,
-    desc: "Manning's n library, head loss, forebay sizing.",
-    cite: 'AEPC §5',
-    ready: false,
+    // ← CHANGED: ready: true + href added (was ready: false, no href)
+    desc: "Manning's open-channel hydraulics, head loss chain, forebay storage and submergence, fine-rack design.",
+    cite: 'AEPC DFS 2014 §3.3.5 · AHEC §8 · §9 · IS:11388',
+    ready: true,
+    href: `/projects/${projectId}/headrace`,
   },
   {
     id: 'penstock',
@@ -109,7 +110,7 @@ export default async function ProjectPage({
 
   const { data: project } = await supabase
     .from('projects')
-    .select('*')
+    .select('id, name, river, district, capacity_kw, standard, status')
     .eq('id', id)
     .single()
 
@@ -131,58 +132,45 @@ export default async function ProjectPage({
     <div className="min-h-screen bg-stone-50">
       {/* ─── Header ─────────────────────────────────────────────────────── */}
       <header className="border-b border-stone-200 bg-white">
-        <div className="max-w-5xl mx-auto px-6 lg:px-10 py-6">
+        <div className="mx-auto max-w-5xl px-6 py-6 lg:px-10">
           <Link
             href="/projects"
-            className="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-stone-900 mb-3"
+            className="mb-3 inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-stone-900"
             style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="h-3.5 w-3.5" />
             All projects
           </Link>
 
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <div
-                className="text-[11px] tracking-[0.2em] uppercase text-emerald-800 mb-2"
+                className="mb-2 text-[11px] uppercase tracking-[0.2em] text-emerald-800"
                 style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
               >
-                Project · {project.standard ?? 'AEPC_NP'}
+                Project · {project.standard ?? 'AEPC DFS 2014'}
               </div>
               <h1
-                className="text-4xl lg:text-5xl text-stone-900 tracking-tight"
+                className="text-3xl text-stone-900"
                 style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 500 }}
               >
                 {project.name}
               </h1>
-              <div
-                className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-stone-600"
-                style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
-              >
-                {project.river && <span>{project.river}</span>}
-                {project.district && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {project.district}
-                  </span>
-                )}
-                {project.capacity_kw && <span>{project.capacity_kw} kW target</span>}
-                <StatusBadge status={project.status} />
-              </div>
+              {(project.river || project.district) && (
+                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-stone-600">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {[project.river, project.district].filter(Boolean).join(' · ')}
+                </p>
+              )}
             </div>
-
-            <div className="text-right">
-              <div
-                className="text-[11px] tracking-[0.2em] uppercase text-stone-500"
-                style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
-              >
-                Progress
-              </div>
-              <div className="text-3xl text-stone-900" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
-                {completedCount}<span className="text-stone-400">/{items.length}</span>
-              </div>
-              <div className="mt-1 w-32 h-1 bg-stone-200 rounded">
-                <div className="h-1 bg-emerald-700 rounded" style={{ width: `${progress}%` }} />
+            <div
+              className="text-right text-[11px] uppercase tracking-[0.15em] text-stone-500"
+              style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+            >
+              <div>Status · {project.status}</div>
+              {project.capacity_kw && <div>Target · {project.capacity_kw} kW</div>}
+              <div className="mt-1 text-emerald-800">
+                {completedCount}/{items.length} modules · {progress}%
               </div>
             </div>
           </div>
@@ -190,97 +178,74 @@ export default async function ProjectPage({
       </header>
 
       {/* ─── Module grid ────────────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-6 lg:px-10 py-10">
-        <h2
-          className="text-[11px] tracking-[0.2em] uppercase text-stone-500 mb-4"
-          style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
-        >
-          Design modules
-        </h2>
-        <div className="grid sm:grid-cols-2 gap-4">
+      <main className="mx-auto max-w-5xl px-6 py-8 lg:px-10">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {items.map((m) => {
-            const isComplete = completed.has(m.id)
             const Icon = m.icon
-            const cardInner = (
-              <div
-                className={
-                  'group relative h-full bg-white border rounded p-5 transition-colors ' +
-                  (m.ready
-                    ? 'border-stone-200 hover:border-emerald-700 hover:shadow-sm cursor-pointer'
-                    : 'border-stone-200 opacity-60')
-                }
-              >
+            const done = completed.has(m.id)
+
+            const Inner = (
+              <div className="flex h-full flex-col">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div
-                      className={
-                        'w-10 h-10 rounded flex items-center justify-center ' +
-                        (m.ready ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-400')
-                      }
-                    >
-                      <Icon className="w-5 h-5" />
+                    <div className="rounded bg-stone-100 p-2 text-stone-700">
+                      <Icon className="h-5 w-5" />
                     </div>
                     <div>
                       <div
-                        className="text-[10px] tracking-[0.2em] uppercase text-stone-400"
+                        className="text-[10px] uppercase tracking-[0.2em] text-stone-400"
                         style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
                       >
                         Module {m.num}
                       </div>
-                      <div
+                      <h3
                         className="text-lg text-stone-900"
                         style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 500 }}
                       >
                         {m.label}
-                      </div>
+                      </h3>
                     </div>
                   </div>
-                  {m.ready ? (
-                    isComplete ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-emerald-700 shrink-0" />
-                    )
+                  {done ? (
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-700" />
+                  ) : !m.ready ? (
+                    <Lock className="h-4 w-4 shrink-0 text-stone-400" />
                   ) : (
-                    <Lock className="w-4 h-4 text-stone-300 shrink-0" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-stone-400" />
                   )}
                 </div>
-                <p className="mt-3 text-sm text-stone-600 leading-relaxed">{m.desc}</p>
+                <p className="mt-3 text-sm text-stone-600">{m.desc}</p>
                 <div
-                  className="mt-3 text-[10px] tracking-[0.2em] uppercase text-emerald-800/70"
+                  className="mt-3 text-[10px] uppercase tracking-widest text-stone-400"
                   style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
                 >
                   {m.cite}
-                  {isComplete && <span className="ml-2 text-stone-400">· saved</span>}
                 </div>
               </div>
             )
-            return m.ready && m.href ? (
-              <Link key={m.id} href={m.href} className="block h-full">
-                {cardInner}
-              </Link>
-            ) : (
-              <div key={m.id} className="h-full">
-                {cardInner}
+
+            if (m.ready && m.href) {
+              return (
+                <Link
+                  key={m.id}
+                  href={m.href}
+                  className="block rounded-md border border-stone-200 bg-white p-6 transition hover:border-emerald-600 hover:shadow-sm"
+                >
+                  {Inner}
+                </Link>
+              )
+            }
+            return (
+              <div
+                key={m.id}
+                className="cursor-not-allowed rounded-md border border-stone-200 bg-stone-50 p-6 opacity-60"
+              >
+                {Inner}
               </div>
             )
           })}
         </div>
-      </div>
+      </main>
     </div>
-  )
-}
-
-function StatusBadge({ status }: { status?: string | null }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    draft:       { label: 'Draft',       cls: 'bg-stone-100 text-stone-700' },
-    in_progress: { label: 'In progress', cls: 'bg-amber-50 text-amber-800' },
-    complete:    { label: 'Complete',    cls: 'bg-emerald-50 text-emerald-800' },
-  }
-  const s = map[status ?? 'draft'] ?? map.draft
-  return (
-    <span className={`inline-block px-2 py-0.5 rounded text-[10px] tracking-wider uppercase ${s.cls}`}>
-      {s.label}
-    </span>
   )
 }
