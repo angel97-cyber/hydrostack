@@ -80,7 +80,8 @@ const modules = (projectId: string): ModuleDef[] => [
     icon: Zap,
     desc: 'Pelton / Crossflow / Turgo / Francis selection.',
     cite: 'AEPC §7',
-    ready: false,
+    ready: true,
+    href: `/projects/${projectId}/powerhouse`,
   },
   {
     id: 'energy',
