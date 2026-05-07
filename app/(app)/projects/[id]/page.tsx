@@ -63,9 +63,19 @@ const modules = (projectId: string): ModuleDef[] => [
   ready: true,
   href: `/projects/${projectId}/penstock`,
 },
+{
+  id: 'anchorblock',
+  num: '05',
+  label: 'Anchor Block',
+  icon: Zap,
+  desc: 'IS 5330:1984 forces, expanding/contracting conditions, sliding · overturning · bearing.',
+  cite: 'IS 5330:1984 §5–7 · AEPC DFS 2014 §3.3.6',
+  ready: true,
+  href: `/projects/${projectId}/anchorblock`,
+},
   {
     id: 'powerhouse',
-    num: '05',
+    num: '06',
     label: 'Powerhouse & Turbine',
     icon: Zap,
     desc: 'Pelton / Crossflow / Turgo / Francis selection.',
@@ -74,7 +84,7 @@ const modules = (projectId: string): ModuleDef[] => [
   },
   {
     id: 'energy',
-    num: '06',
+    num: '07',
     label: 'Energy Table',
     icon: BarChart3,
     desc: 'Monthly GWh, plant factor, English + Nepali months.',
@@ -83,7 +93,7 @@ const modules = (projectId: string): ModuleDef[] => [
   },
   {
     id: 'financial',
-    num: '07',
+    num: '08',
     label: 'Financial Model',
     icon: DollarSign,
     desc: 'CapEx, OpEx, IRR, NPV, LCoE — NPR + USD.',
@@ -92,7 +102,7 @@ const modules = (projectId: string): ModuleDef[] => [
   },
   {
     id: 'export',
-    num: '08',
+    num: '09',
     label: 'Export DFS + DXF',
     icon: FileText,
     desc: 'AEPC 2014 PDF report + 5 typical DXF drawings.',
