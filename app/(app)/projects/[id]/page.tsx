@@ -104,14 +104,15 @@ const modules = (projectId: string): ModuleDef[] => [
   href: `/projects/${projectId}/financial`,
 },
   {
-    id: 'export',
-    num: '09',
-    label: 'Export DFS + DXF',
-    icon: FileText,
-    desc: 'AEPC 2014 PDF report + 5 typical DXF drawings.',
-    cite: 'AEPC DFS 2014',
-    ready: false,
-  },
+  id: 'export',
+  num: '09',
+  label: 'Export DFS + DXF',
+  icon: FileText,
+  desc: 'AEPC 2014 PDF report + 5 typical DXF drawings.',
+  cite: 'AEPC DFS 2014',
+  ready: true,                           // ← was false
+  href: `/projects/${projectId}/report`,        // ← add this line
+},
 ]
 
 export default async function ProjectPage({
