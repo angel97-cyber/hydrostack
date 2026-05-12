@@ -152,7 +152,7 @@ export default function AppSidebar({ user, profile }: SidebarProps) {
         </div>
         <div className="flex gap-1">
           <Link
-            href="/app/settings"
+            href="/settings/profile"
             className="flex-1 flex items-center gap-1.5 px-2 py-1.5 text-stone-500 hover:text-stone-300 hover:bg-stone-800/60 text-xs transition-all"
           >
             <Settings className="w-3 h-3" />

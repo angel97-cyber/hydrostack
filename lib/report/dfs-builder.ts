@@ -47,6 +47,17 @@ export interface ProjectRow {
   status: string | null
 }
 
+// ── NEW Day 12: engineer profile for DFS cover pre-population ──────────────
+// Populated from public.profiles by the report-generate route handler.
+// Every field is optional — the cover page falls back to the [INSERT] amber
+// placeholder for any field that is null / undefined.
+export type EngineerProfile = {
+  full_name?: string | null
+  firm_name?: string | null
+  nec_reg_no?: string | null
+  designation?: string | null
+} | null
+
 // ────────────────────────────────────────────────────────────
 // Constants
 // ────────────────────────────────────────────────────────────
@@ -1435,11 +1446,19 @@ function buildAnnexB(mods: ModuleMap) {
 }
 
 // ────────────────────────────────────────────────────────────
-// Cover page children (no separate section — first page of
-// the single section; titlePage:true suppresses the header)
+// Cover page children
+//
+// CHANGED Day 12: accepts `profile?: EngineerProfile` and uses
+// it to pre-populate the "Prepared by" line on the cover.
+// Falls back to the amber [INSERT] placeholder when profile is
+// null / undefined or when every field is blank.
 // ────────────────────────────────────────────────────────────
 
-function buildCoverChildren(project: ProjectRow, mods: ModuleMap) {
+function buildCoverChildren(
+  project: ProjectRow,
+  mods: ModuleMap,
+  profile?: EngineerProfile,
+) {
   const hyd = mods.get('hydrology')?.outputs ?? {}
   const ph = mods.get('powerhouse')?.outputs ?? {}
   const fin = mods.get('financial')?.outputs ?? {}
@@ -1447,6 +1466,22 @@ function buildCoverChildren(project: ProjectRow, mods: ModuleMap) {
   const dateStr = today.toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
+
+  // ── Prepared-by line ────────────────────────────────────────────────────
+  // Composed from the engineer profile saved on the Settings page.
+  // Format: "Full Name · NEC Reg. NEC-CIV-XXXXX · Senior Civil Engineer · Firm Name"
+  // Each field is only included when present and non-blank.
+  const preparedByParts = [
+    profile?.full_name,
+    profile?.nec_reg_no ? `NEC Reg. ${profile.nec_reg_no}` : null,
+    profile?.designation,
+    profile?.firm_name,
+  ].filter((v): v is string => Boolean(v && v.trim().length > 0))
+
+  const preparedByText = preparedByParts.length > 0
+    ? preparedByParts.join(' · ')
+    : '[INSERT: Engineer name, NEC reg. no., firm name]'
+  const isPlaceholder = preparedByParts.length === 0
 
   return [
     blank(), blank(), blank(),
@@ -1540,16 +1575,22 @@ function buildCoverChildren(project: ProjectRow, mods: ModuleMap) {
       spacing: { after: 80 },
       children: [new TextRun({ text: 'Prepared by', font: FONT, size: 20, color: C.gray })],
     }),
+
+    // ── CHANGED: dynamic profile line vs amber placeholder ──────────────
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 240 },
       children: [
         new TextRun({
-          text: '[INSERT: Engineer name, NEC reg. no., firm name]',
-          font: FONT, size: 22, italics: true, color: C.amber,
+          text: preparedByText,
+          font: FONT,
+          size: 22,
+          italics: isPlaceholder,
+          color: isPlaceholder ? C.amber : C.ink,
         }),
       ],
     }),
+
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 80 },
@@ -1575,19 +1616,12 @@ function buildCoverChildren(project: ProjectRow, mods: ModuleMap) {
 // ────────────────────────────────────────────────────────────
 // normalizeModuleData — translate actual DB JSONB key names to
 // the canonical names the chapter builders expect.
-//
-// Each HydroStack module was built on different days and uses
-// different internal key naming conventions. This function is
-// the single source of truth for that translation so the
-// chapter builders stay clean.
 // ────────────────────────────────────────────────────────────
 
 function normalizeModuleData(raw: ModuleMap): ModuleMap {
   const norm = new Map(raw)
 
   // ── HYDROLOGY ──────────────────────────────────────────────
-  // Module stores: inputs.{qDesign, grossHead, aTotal, mwi, method}
-  //                outputs.{fdc:{q0,q5..}, q40, q80, head:{grossHead}, qMean, flood:{q100Inst}}
   const hydRow = raw.get('hydrology')
   if (hydRow) {
     const i = hydRow.inputs as any
@@ -1617,8 +1651,6 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
   }
 
   // ── INTAKE ─────────────────────────────────────────────────
-  // Module stores: inputs.{qDesign, rackBarSpacing, rackApproachVelocity, basinWidth}
-  //                outputs.{rackGrossArea, rackNetArea, basinLength, rackHeadLossAhec}
   const intakeRow = raw.get('intake')
   if (intakeRow) {
     const i = intakeRow.inputs as any
@@ -1643,15 +1675,12 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
   }
 
   // ── HEADRACE ───────────────────────────────────────────────
-  // Module stores flat: inputs.{length, conduitType, bedSlope, forebayLength/Width/Depth}
-  //                     outputs.{velocity, hHeadrace, forebayActiveStorageM3}
   const hrRow = raw.get('headrace')
   if (hrRow) {
     const i = hrRow.inputs as any
     const o = hrRow.outputs as any
     const fbVol = o?.forebayActiveStorageM3
       ?? (Number(i?.forebayLength) * Number(i?.forebayWidth) * Number(i?.forebayDepth) || undefined)
-    // Only normalise if the nested structure isn't already there
     if (!o?.headrace) {
       norm.set('headrace', {
         inputs: i,
@@ -1677,9 +1706,6 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
   }
 
   // ── ANCHOR BLOCK ───────────────────────────────────────────
-  // Module stores forces as component names (Du_N, Fs_N, Spd_N … in Newtons)
-  // and stability as worstFosSliding / contracting.fosBearing etc.
-  // Builder expects forces.{f1..f12} in kN + stability.{sliding,overturning,bearing}
   const abRow = raw.get('anchorblock')
   if (abRow) {
     const i = abRow.inputs as any
@@ -1699,18 +1725,18 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
         outputs: {
           ...o,
           forces: {
-            f1:  N2kN(o.blockSelfWeightN),   // Self-weight of block
-            f2:  N2kN(o.Fs_N),               // Hydrostatic pressure (surge)
-            f3:  N2kN(o.Fu_N),               // Friction – uphill expanding
-            f4:  N2kN(o.Fd_exp_N),           // Friction – downhill expanding
-            f5:  N2kN(o.Fd_N),               // Friction – downhill contracting
-            f6:  N2kN(o.Spd_N),              // Normal pipe force (downhill)
-            f7:  N2kN(o.Spu_N),              // Normal pipe force (uphill)
-            f8:  N2kN(o.Du_N),               // Diagonal component (uphill)
-            f9:  N2kN(o.Dd_N),               // Diagonal component (downhill)
-            f10: N2kN(o.Sed_N),              // Seismic – downstream
-            f11: N2kN(o.Seu_N),              // Seismic – upstream
-            f12: N2kN(o.bendResultantN),     // Bend resultant
+            f1:  N2kN(o.blockSelfWeightN),
+            f2:  N2kN(o.Fs_N),
+            f3:  N2kN(o.Fu_N),
+            f4:  N2kN(o.Fd_exp_N),
+            f5:  N2kN(o.Fd_N),
+            f6:  N2kN(o.Spd_N),
+            f7:  N2kN(o.Spu_N),
+            f8:  N2kN(o.Du_N),
+            f9:  N2kN(o.Dd_N),
+            f10: N2kN(o.Sed_N),
+            f11: N2kN(o.Seu_N),
+            f12: N2kN(o.bendResultantN),
           },
           stability: {
             sliding:     { factor: fosSlid, required: 1.5, passed: fosSlid  >= 1.5 },
@@ -1731,10 +1757,17 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
 
 // ────────────────────────────────────────────────────────────
 // Public entry point — buildDfsReport
-// Single section: cover (no header on pg 1) + all chapters
+//
+// CHANGED Day 12: accepts optional `profile` (EngineerProfile)
+// and passes it down to buildCoverChildren so the cover page
+// shows real engineer credentials instead of [INSERT] amber text.
 // ────────────────────────────────────────────────────────────
 
-export function buildDfsReport(project: ProjectRow, rawMods: ModuleMap): Document {
+export function buildDfsReport(
+  project: ProjectRow,
+  rawMods: ModuleMap,
+  profile?: EngineerProfile,
+): Document {
   // Normalise all module JSONB keys to canonical names before building
   const mods = normalizeModuleData(rawMods)
   const today = new Date()
@@ -1765,7 +1798,6 @@ export function buildDfsReport(project: ProjectRow, rawMods: ModuleMap): Documen
     ],
   })
 
-  // Empty first-page header/footer — suppresses header/footer on cover page
   const emptyHeader = new Header({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
   const emptyFooter = new Footer({ children: [new Paragraph({ children: [new TextRun({ text: '' })] })] })
 
@@ -1810,7 +1842,7 @@ export function buildDfsReport(project: ProjectRow, rawMods: ModuleMap): Documen
     sections: [
       {
         properties: {
-          titlePage: true,   // page 1 uses first header/footer (empty = no header on cover)
+          titlePage: true,
           page: {
             size: { width: A4_W, height: A4_H },
             margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN },
@@ -1819,7 +1851,8 @@ export function buildDfsReport(project: ProjectRow, rawMods: ModuleMap): Documen
         headers: { default: mainHeader, first: emptyHeader },
         footers: { default: mainFooter, first: emptyFooter },
         children: [
-          ...buildCoverChildren(project, mods),
+          // CHANGED: pass profile to cover builder
+          ...buildCoverChildren(project, mods, profile),
           ...buildSalientFeatures(project, mods),
           ...buildTOC(),
           ...buildChapter1(project),
