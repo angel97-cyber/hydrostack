@@ -1767,6 +1767,7 @@ export function buildDfsReport(
   project: ProjectRow,
   rawMods: ModuleMap,
   profile?: EngineerProfile,
+  watermark?: boolean,
 ): Document {
   // Normalise all module JSONB keys to canonical names before building
   const mods = normalizeModuleData(rawMods)
@@ -1782,6 +1783,23 @@ export function buildDfsReport(
           new TextRun({ text: '\tDFS ' + today.getFullYear() + ' \u00B7 DRAFT', font: FONT, size: 18, color: C.amber, italics: true, bold: true }),
         ],
       }),
+      ...(watermark
+        ? [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({
+                  text: 'STUDENT PLAN — upgrade at usehydrostack.com',
+                  font: FONT,
+                  size: 16,
+                  italics: true,
+                  color: C.amber,
+                  bold: true,
+                }),
+              ],
+            }),
+          ]
+        : []),
     ],
   })
 

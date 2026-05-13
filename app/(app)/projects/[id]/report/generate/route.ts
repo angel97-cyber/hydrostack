@@ -20,6 +20,7 @@ import {
   type ProjectRow,
   type EngineerProfile,
 } from '@/lib/report/dfs-builder'
+import { shouldWatermark } from '@/lib/billing/plans'
 
 export const runtime = 'nodejs' // docx + Buffer require Node runtime
 export const dynamic = 'force-dynamic'
@@ -81,11 +82,12 @@ export async function GET(
   // the builder falls back to the [INSERT: …] placeholder.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, firm_name, nec_reg_no, designation')
+    .select('full_name, firm_name, nec_reg_no, designation, plan')
     .eq('id', user.id)
     .maybeSingle()
 
   const engineerProfile: EngineerProfile = profile ?? null
+  const watermark = shouldWatermark(profile?.plan ?? 'beta')
 
   // ─── Debug mode — return raw DB shape, no doc build ───
   if (debugMode) {
@@ -117,7 +119,7 @@ export async function GET(
   // ─── Build & stream ───
   let buffer: Buffer
   try {
-    const doc = buildDfsReport(project, mods, engineerProfile)
+    const doc = buildDfsReport(project, mods, engineerProfile, watermark)
     buffer = await Packer.toBuffer(doc)
   } catch (err: unknown) {
     console.error('[report] DFS build failed:', err)

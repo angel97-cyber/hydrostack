@@ -10,7 +10,7 @@ import Link from 'next/link'
 const sections = [
   { label: 'Profile',  href: '/settings/profile',  enabled: true,  hint: 'NEC reg. + firm details for the DFS cover page' },
   { label: 'Account',  href: '/settings/account',  enabled: false, hint: 'Coming soon — email, password, sessions' },
-  { label: 'Billing',  href: '/settings/billing',  enabled: false, hint: 'Coming soon — plan, invoices, payment method' },
+  { label: 'Billing',  href: '/settings/billing',  enabled: true,  hint: 'Plan, project limit, upgrade options' },
 ]
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
