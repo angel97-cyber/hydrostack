@@ -2,6 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
+  // Skip auth callback routes — middleware must not touch PKCE cookies
+  if (
+    request.nextUrl.pathname.startsWith('/auth/') ||
+    request.nextUrl.pathname === '/callback'
+  ) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
