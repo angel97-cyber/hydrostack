@@ -23,7 +23,6 @@ export default function AuthCallbackPage() {
         }
       })
     } else {
-      // Implicit flow — session already in URL fragment, just check
       supabase.auth.getSession().then(({ data: { session } }) => {
         router.replace(session ? next : '/login?error=no_code')
       })
