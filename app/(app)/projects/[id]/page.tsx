@@ -143,7 +143,9 @@ export default async function ProjectPage({
   const reportDone = completed.has('financial')
 const completedCount = items.filter((m) => completed.has(m.id)).length + (reportDone ? 1 : 0)
   const progress = Math.round((completedCount / items.length) * 100)
-
+if (completedCount === items.length && project.status !== 'complete') {
+  await supabase.from('projects').update({ status: 'complete' }).eq('id', id)
+}
   return (
     <div className="min-h-screen bg-stone-50">
       {/* ─── Header ─────────────────────────────────────────────────────── */}
@@ -183,7 +185,7 @@ const completedCount = items.filter((m) => completed.has(m.id)).length + (report
               className="text-right text-[11px] uppercase tracking-[0.15em] text-stone-500"
               style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
             >
-              <div>Status · {project.status}</div>
+              <div>Status · {progress === 100 ? 'COMPLETE' : project.status}</div>
               {project.capacity_kw && <div>Target · {project.capacity_kw} kW</div>}
               <div className="mt-1 text-emerald-800">
                 {completedCount}/{items.length} modules · {progress}%
@@ -198,7 +200,7 @@ const completedCount = items.filter((m) => completed.has(m.id)).length + (report
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {items.map((m) => {
             const Icon = m.icon
-            const done = completed.has(m.id)
+            const done = completed.has(m.id) || (m.id === 'export' && reportDone)
 
             const Inner = (
               <div className="flex h-full flex-col">
