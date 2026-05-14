@@ -140,7 +140,8 @@ export default async function ProjectPage({
     (completedModules ?? []).map((m: { module: string; updated_at: string }) => [m.module, m.updated_at])
   )
   const items = modules(project.id)
-  const completedCount = items.filter((m) => completed.has(m.id)).length
+  const reportDone = completed.has('financial')
+const completedCount = items.filter((m) => completed.has(m.id)).length + (reportDone ? 1 : 0)
   const progress = Math.round((completedCount / items.length) * 100)
 
   return (
