@@ -10,8 +10,8 @@ export default async function AdminUsersPage() {
   const { data: profiles, error: profileError } = await admin
     .from('profiles')
     .select(
-      'id, full_name, firm_name, nec_reg_no, plan, subscription_status, project_limit, plan_activated_at, plan_note, updated_at',
-    )
+  'id, full_name, pan_number, plan, subscription_status, project_limit, plan_activated_at, plan_note, updated_at',
+)
     .order('updated_at', { ascending: false })
 
   if (profileError) {
@@ -52,8 +52,7 @@ export default async function AdminUsersPage() {
     id: p.id,
     email: emailById.get(p.id) ?? '—',
     fullName: p.full_name,
-    firmName: p.firm_name,
-    necRegNo: p.nec_reg_no,
+    panNumber: p.pan_number,
     plan: p.plan,
     subscriptionStatus: p.subscription_status,
     projectLimit: p.project_limit,

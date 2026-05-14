@@ -7,8 +7,7 @@ export interface UserRow {
   id: string
   email: string
   fullName: string | null
-  firmName: string | null
-  necRegNo: string | null
+  panNumber: string | null
   plan: string
   subscriptionStatus: string
   projectLimit: number
@@ -36,8 +35,7 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
       (r) =>
         r.email.toLowerCase().includes(q) ||
         r.fullName?.toLowerCase().includes(q) ||
-        r.firmName?.toLowerCase().includes(q) ||
-        r.necRegNo?.toLowerCase().includes(q),
+        r.panNumber?.toLowerCase().includes(q),
     )
   }, [initialRows, query])
 
@@ -46,7 +44,7 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by email, name, firm, NEC reg…"
+          placeholder="Search by email, name or PAN…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full max-w-md rounded-sm border border-stone-300 bg-white px-3 py-2 font-mono text-sm text-stone-900 placeholder-stone-400 focus:border-stone-600 focus:outline-none"
@@ -59,7 +57,7 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
             <tr>
               <Th>Email</Th>
               <Th>Name</Th>
-              <Th>NEC Reg</Th>
+        <Th>PAN</Th>
               <Th>Plan</Th>
               <Th>Projects</Th>
               <Th>Activated</Th>
@@ -82,12 +80,9 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
                 </Td>
                 <Td>
                   <div className="text-stone-900">{r.fullName ?? '—'}</div>
-                  {r.firmName && (
-                    <div className="text-[10px] text-stone-500">{r.firmName}</div>
-                  )}
                 </Td>
                 <Td>
-                  <span className="text-stone-700">{r.necRegNo ?? '—'}</span>
+                  <span className="text-stone-700">{r.panNumber ?? '—'}</span>
                 </Td>
                 <Td>
                   <span
