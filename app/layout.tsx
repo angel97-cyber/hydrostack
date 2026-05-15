@@ -1,43 +1,81 @@
-import type { Metadata } from 'next'
-import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-display',
-  weight: 'variable',
-  display: 'swap',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-})
-
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  weight: ['400', '500', '700'],
-  display: 'swap',
-})
+import { PostHogProvider } from '@/lib/analytics/posthog-provider'
 
 export const metadata: Metadata = {
-  title: 'HydroStack — AEPC-compliant DFS in under an hour',
+  metadataBase: new URL('https://usehydrostack.com'),
+  title: {
+    default: 'HydroStack — DFS Platform for Nepal Hydropower',
+    template: '%s · HydroStack',
+  },
   description:
-    'The design workbench for mini and micro hydropower in Nepal. Hydrology, intake, penstock, anchor blocks, energy table, and financial model — every AEPC typical, generated in one flow.',
-  keywords: ['AEPC', 'hydropower', 'micro-hydro', 'mini-hydro', 'DFS', 'Nepal', 'IS 5330'],
+    'Submission-ready Detailed Feasibility Studies for AEPC and DoED. Built for senior Nepali hydropower engineers. Replaces legacy Excel and AutoCAD workflows for mini and micro hydropower projects.',
+  keywords: [
+    'AEPC DFS',
+    'DoED submission',
+    'Nepal hydropower',
+    'micro hydropower',
+    'mini hydropower',
+    'run of river',
+    'feasibility study Nepal',
+    'penstock design',
+    'anchor block design',
+    'IS 5330',
+    'IS 11625',
+    'IS 11639',
+    'hydropower engineering software',
+    'AHEC IITR',
+  ],
   authors: [{ name: 'Angel Mainali' }],
+  creator: 'Angel Mainali',
+  publisher: 'HydroStack',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://usehydrostack.com',
+    siteName: 'HydroStack',
+    title: 'HydroStack — DFS Platform for Nepal Hydropower',
+    description:
+      'Submission-ready DFS reports for AEPC and DoED. Built for senior Nepali hydropower engineers.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HydroStack — DFS Platform for Nepal Hydropower',
+    description: 'Submission-ready DFS reports. Replaces legacy Excel and AutoCAD.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: 'https://usehydrostack.com',
+  },
+  icons: { icon: '/favicon.ico' },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const viewport: Viewport = {
+  themeColor: '#1c1917',
+  width: 'device-width',
+  initialScale: 1,
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable}`}>
-      <body
-        className="bg-stone-50 text-stone-900"
-        style={{ fontFamily: 'var(--font-body), system-ui, -apple-system, sans-serif' }}
-      >
-        {children}
+    <html lang="en">
+      <body className="antialiased">
+        <PostHogProvider>
+          {children}
+        </PostHogProvider>
       </body>
     </html>
   )

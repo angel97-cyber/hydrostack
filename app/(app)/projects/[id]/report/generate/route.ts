@@ -80,11 +80,12 @@ export async function GET(
   // Profile row is auto-created by the on_auth_user_created trigger. We
   // tolerate a missing row in case the migration hasn't been applied yet —
   // the builder falls back to the [INSERT: …] placeholder.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, firm_name, nec_reg_no, designation, plan')
-    .eq('id', user.id)
-    .maybeSingle()
+ // AFTER — only confirmed schema columns
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('full_name, plan')
+  .eq('id', user.id)
+  .maybeSingle()
 
   const engineerProfile: EngineerProfile = profile ?? null
   const watermark = shouldWatermark(profile?.plan ?? 'beta')
