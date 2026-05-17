@@ -1,7 +1,8 @@
 // HydroStack — Module 03: Headrace & Forebay (server component)
 //
 // Reads upstream hydrology module's saved JSONB to seed the design flow.
-// If hydrology is not yet saved, the form renders disabled with a warning.
+// Also reads intake module's rack inputs so HeadraceForm can offer
+// "Copy from Module 2" for the fine trashrack section.
 
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -14,9 +15,20 @@ import {
 } from '@/lib/calc/headrace'
 
 interface PageProps {
-  // Next.js 15+ async params
   params: Promise<{ id: string }>
 }
+
+// Shape of the intake rack fields passed to HeadraceForm.
+// Note the key-name differences from HeadraceInput:
+//   intake.rackApproachVelocity → headrace.rackVelocity
+//   intake.rackInclinationDeg  → headrace.rackInclination
+export type IntakeRack = {
+  rackBarSpacing:   number | null
+  rackBarThickness: number | null
+  rackVelocity:     number | null   // mapped from rackApproachVelocity
+  rackInclination:  number | null   // mapped from rackInclinationDeg
+  rackBarShape:     string | null
+} | null
 
 export default async function HeadracePage({ params }: PageProps) {
   const { id } = await params
@@ -35,7 +47,7 @@ export default async function HeadracePage({ params }: PageProps) {
     .single()
   if (projectError || !project) notFound()
 
-  // ── Upstream module: hydrology ──────────────────────────────────────────
+  // ── Upstream: hydrology ──────────────────────────────────────────────────
   const { data: hydro } = await supabase
     .from('project_modules')
     .select('inputs, outputs, updated_at')
@@ -43,12 +55,36 @@ export default async function HeadracePage({ params }: PageProps) {
     .eq('module', 'hydrology')
     .maybeSingle()
 
-  const hydroInputs  = (hydro?.inputs as Record<string, unknown> | null) ?? null
-  const qDesign      = (hydroInputs?.qDesign as number | undefined) ?? 0
+  const hydroInputs = (hydro?.inputs as Record<string, unknown> | null) ?? null
+  const qDesign     = (hydroInputs?.qDesign as number | undefined) ?? 0
 
   const hydrologyComplete = !!hydro && qDesign > 0
 
-  // ── This module's saved row (if any) ────────────────────────────────────
+  // ── Upstream: intake rack inputs (for "Copy from Module 2" button) ───────
+  // Map intake keys → headrace keys so HeadraceForm can apply them directly.
+  const { data: intakeRow } = await supabase
+    .from('project_modules')
+    .select('inputs')
+    .eq('project_id', id)
+    .eq('module', 'intake')
+    .maybeSingle()
+
+  const intakeRack: IntakeRack = intakeRow?.inputs
+    ? (() => {
+        const i = intakeRow.inputs as Record<string, unknown>
+        return {
+          rackBarSpacing:   (i.rackBarSpacing   as number | null) ?? null,
+          rackBarThickness: (i.rackBarThickness as number | null) ?? null,
+          // rackApproachVelocity in intake → rackVelocity in headrace
+          rackVelocity:     (i.rackApproachVelocity as number | null) ?? null,
+          // rackInclinationDeg in intake → rackInclination in headrace
+          rackInclination:  (i.rackInclinationDeg  as number | null) ?? null,
+          rackBarShape:     (i.rackBarShape as string | null) ?? null,
+        }
+      })()
+    : null
+
+  // ── This module's saved row ──────────────────────────────────────────────
   const { data: saved } = await supabase
     .from('project_modules')
     .select('inputs, outputs, updated_at')
@@ -134,6 +170,7 @@ export default async function HeadracePage({ params }: PageProps) {
           qDesign={qDesign}
           locked={!hydrologyComplete}
           alreadySaved={!!saved}
+          intakeRack={intakeRack}
         />
       </main>
     </div>

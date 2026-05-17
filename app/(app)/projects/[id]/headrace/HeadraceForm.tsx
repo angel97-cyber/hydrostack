@@ -17,6 +17,7 @@ import {
   type RackBarShape,
   type TurbineKind,
 } from '@/lib/calc/headrace'
+import type { IntakeRack } from './page'
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ interface Props {
   qDesign:       number
   locked:        boolean
   alreadySaved:  boolean
+  intakeRack?:   IntakeRack  // coarse-rack values from Module 2 for pre-fill button
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
@@ -161,7 +163,7 @@ function Divider() {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
-export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alreadySaved }: Props) {
+export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alreadySaved, intakeRack }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [inputs, setInputs] = useState<HeadraceInput>(initialInputs)
@@ -173,8 +175,6 @@ export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alread
     if (saveState === 'saved') setSaveState('idle')
   }
 
-  // When conduit type changes, auto-fill Manning's n midpoint AND
-  // snap the cross-section to one allowed by that conduit type.
   function setConduitType(t: ConduitType) {
     const spec = CONDUIT_LIBRARY[t]
     setInputs((prev) => ({
@@ -186,7 +186,21 @@ export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alread
     if (saveState === 'saved') setSaveState('idle')
   }
 
-  // qDesign is a prop — compose at call time, never sync into state (avoids setState-in-effect).
+  // "Copy from Module 2" — pre-fills the fine trashrack with the coarse rack
+  // values from intake. Engineers still need to verify spacing vs AEPC §3.1.1.2.
+  function handleCopyFromIntake() {
+    if (!intakeRack) return
+    setInputs((prev) => ({
+      ...prev,
+      ...(intakeRack.rackBarSpacing   != null ? { rackBarSpacing:   intakeRack.rackBarSpacing }   : {}),
+      ...(intakeRack.rackBarThickness != null ? { rackBarThickness: intakeRack.rackBarThickness } : {}),
+      ...(intakeRack.rackVelocity     != null ? { rackVelocity:     intakeRack.rackVelocity }     : {}),
+      ...(intakeRack.rackInclination  != null ? { rackInclination:  intakeRack.rackInclination }  : {}),
+      ...(intakeRack.rackBarShape     != null ? { rackBarShape:     intakeRack.rackBarShape as RackBarShape } : {}),
+    }))
+    if (saveState === 'saved') setSaveState('idle')
+  }
+
   const out = useMemo(() => calculateHeadrace({ ...inputs, qDesign }), [inputs, qDesign])
 
   const conduit = CONDUIT_LIBRARY[inputs.conduitType]
@@ -198,7 +212,6 @@ export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alread
     ] as Array<{ value: SectionShape; label: string }>
   ).filter((s) => conduit.sections.includes(s.value))
 
-  // ── Save ────────────────────────────────────────────────────────────────
   async function handleSave() {
     if (locked) return
     setSaveState('saving')
@@ -384,7 +397,6 @@ export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alread
 
           <Divider />
 
-          {/* live geometry results */}
           <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <ResultRow label="Area A"           value={out.area}            unit="m²"   precision={3} />
             <ResultRow label="Wetted P"         value={out.wettedPerimeter} unit="m"    precision={3} />
@@ -457,13 +469,42 @@ export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alread
           </div>
         </section>
 
-        {/* §6 fine trashrack */}
+        {/* §6 fine trashrack — with "Copy from Module 2" button */}
         <section className="rounded border border-stone-200 bg-white p-6">
-          <SectionHeader
-            marker="§6"
-            title="Fine trashrack at penstock entry"
-            note="AEPC Reference Std 2014 §3.1.1.2: spacing = ½ nozzle Ø (Pelton) / ½ runner-blade clearance (Crossflow/Francis). IS:11388-1995 Kirschmer head loss."
-          />
+          {/* Custom header row so we can place the copy button inline */}
+          <div className="mb-4 border-b border-stone-200 pb-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="flex items-baseline gap-3">
+                <span
+                  className="text-[10px] uppercase tracking-[0.2em] text-stone-400"
+                  style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
+                >
+                  §6
+                </span>
+                <h2
+                  className="text-xl text-stone-900"
+                  style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 500 }}
+                >
+                  Fine trashrack at penstock entry
+                </h2>
+              </div>
+              {/* Show button only when intake rack data is available */}
+              {intakeRack?.rackBarSpacing != null && (
+                <button
+                  type="button"
+                  onClick={handleCopyFromIntake}
+                  className="shrink-0 font-mono text-xs text-emerald-700 hover:text-emerald-600 hover:underline"
+                  title="Pre-fills from Module 2 (coarse rack) values. AEPC Reference Std 2014 §3.1.1.2: fine rack spacing must still satisfy ½ nozzle Ø (Pelton) or ½ blade clearance (Crossflow/Francis) — override spacing after copying."
+                >
+                  ↩ Copy from Module 2
+                </button>
+              )}
+            </div>
+            <p className="mt-2 text-xs text-stone-500">
+              AEPC Reference Std 2014 §3.1.1.2: spacing = ½ nozzle Ø (Pelton) / ½ runner-blade clearance (Crossflow/Francis). IS:11388-1995 Kirschmer head loss.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             <SelectField<TurbineKind>
               label="Turbine type"
@@ -504,7 +545,7 @@ export function HeadraceForm({ projectId, initialInputs, qDesign, locked, alread
               onChange={(v) => set('rackBarSpacing', v)}
               step={1}
               min={5}
-              hint={`AEPC rec: ${out.rackRecommendedSpacingMm.toFixed(1)} mm`}
+              hint={`AEPC rec: ${out.rackRecommendedSpacingMm.toFixed(1)} mm  ·  fine rack ≈ ½ nozzle Ø or ½ blade clearance`}
             />
             <NumField
               label="Bar thickness t"

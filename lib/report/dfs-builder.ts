@@ -47,10 +47,6 @@ export interface ProjectRow {
   status: string | null
 }
 
-// ── NEW Day 12: engineer profile for DFS cover pre-population ──────────────
-// Populated from public.profiles by the report-generate route handler.
-// Every field is optional — the cover page falls back to the [INSERT] amber
-// placeholder for any field that is null / undefined.
 export type EngineerProfile = {
   full_name?: string | null
   firm_name?: string | null
@@ -65,7 +61,6 @@ export type EngineerProfile = {
 const FONT = 'Calibri'
 const MONO = 'Consolas'
 
-// A4 in DXA (1440 = 1 inch; 25 mm ≈ 1417 DXA)
 const A4_W = 11906
 const A4_H = 16838
 const MARGIN = 1417
@@ -95,9 +90,26 @@ const ALL_BORDERS_LIGHT = {
 }
 const CELL_MARGINS = { top: 80, bottom: 80, left: 120, right: 120 }
 
+// FIX Bug 5 — Nepali months mapped to Gregorian calendar order (Jan = index 0).
+// Bikram Sambat months run mid-month to mid-month; each is paired with the
+// Gregorian month whose first day falls within it.
+// Jan → Magh, Feb → Falgun, Mar → Chaitra, Apr → Baisakh, May → Jestha,
+// Jun → Ashadh, Jul → Shrawan, Aug → Bhadra, Sep → Ashwin, Oct → Kartik,
+// Nov → Mangsir, Dec → Poush.
+// Matches the convention in NEA / AEPC monthly generation reports.
 const NEPALI_MONTHS = [
-  'Baisakh', 'Jestha', 'Asar', 'Shrawan', 'Bhadra', 'Ashwin',
-  'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra',
+  'Magh',    // Jan (mid-Jan → mid-Feb)
+  'Falgun',  // Feb
+  'Chaitra', // Mar
+  'Baisakh', // Apr (mid-Apr → mid-May)
+  'Jestha',  // May
+  'Ashadh',  // Jun
+  'Shrawan', // Jul (monsoon peak)
+  'Bhadra',  // Aug
+  'Ashwin',  // Sep
+  'Kartik',  // Oct
+  'Mangsir', // Nov
+  'Poush',   // Dec
 ]
 
 // ────────────────────────────────────────────────────────────
@@ -117,7 +129,6 @@ function int(n: any): string {
   return Math.round(Number(n)).toLocaleString('en-IN')
 }
 
-// Indian numbering for NPR amounts
 function nprCr(n: any, decimals = 2): string {
   if (n == null || !isFinite(Number(n))) return '—'
   return (Number(n) / 1e7).toFixed(decimals)
@@ -128,12 +139,26 @@ function nprLakh(n: any, decimals = 2): string {
 }
 
 function nprSmart(n: any): string {
-  // Auto-pick lakh vs crore depending on magnitude
   if (n == null || !isFinite(Number(n))) return '—'
   const v = Number(n)
   if (Math.abs(v) >= 1e7) return nprCr(v) + ' Cr'
   if (Math.abs(v) >= 1e5) return nprLakh(v) + ' lakh'
   return Math.round(v).toLocaleString('en-IN')
+}
+
+// FIX Bug 11 — Translate conduit-type enum values to human-readable labels.
+// The headrace engine stores e.g. 'rcc'; the DFS report must show 'RCC channel'.
+function prettifyConduitType(t: string | undefined | null): string {
+  if (!t) return '—'
+  const labels: Record<string, string> = {
+    earthen:   'Earthen canal',
+    masonry:   'Masonry canal',
+    concrete:  'Concrete canal',
+    rcc:       'RCC channel',
+    hdpe:      'HDPE pipe',
+    mildSteel: 'Mild steel pipe',
+  }
+  return labels[t] ?? (t.charAt(0).toUpperCase() + t.slice(1))
 }
 
 // ────────────────────────────────────────────────────────────
@@ -282,7 +307,6 @@ function cell(value: string | number | null | undefined, opts: CellOpts): TableC
   })
 }
 
-// Two-column key/value summary table
 function kvTable(
   rows: { k: string; v: string | number | null | undefined; isSection?: boolean }[]
 ): Table {
@@ -312,7 +336,6 @@ function kvTable(
   })
 }
 
-// Multi-column data table with header row
 function dataTable(opts: {
   headers: string[]
   rows: (string | number | null | undefined)[][]
@@ -409,7 +432,8 @@ function buildSalientFeatures(project: ProjectRow, mods: ModuleMap): (Paragraph 
     { k: 'Trash rack area', v: intake?.trashRackArea != null ? `${num(intake.trashRackArea, 2)} m²` : '—' },
     { k: 'Settling basin (L × W × D)', v: intake?.sillLengthM != null ? `[INSERT: full L×W×D from drawings]` : '—' },
     { k: 'Headrace length', v: headrace?.headrace?.lengthM != null ? `${num(headrace.headrace.lengthM, 1)} m` : '—' },
-    { k: 'Headrace type', v: headrace?.headrace?.type ?? '—' },
+    // FIX Bug 11 — prettify conduit-type enum
+    { k: 'Headrace type', v: prettifyConduitType(headrace?.headrace?.type) },
     { k: 'Forebay volume', v: headrace?.forebay?.volumeM3 != null ? `${num(headrace.forebay.volumeM3, 1)} m³` : '—' },
     { k: 'Penstock length', v: penstockIn?.lengthM != null ? `${num(penstockIn.lengthM, 1)} m` : '—' },
     { k: 'Penstock diameter (external)', v: penstock?.externalDiameterMm != null ? `${num(penstock.externalDiameterMm, 0)} mm` : '—' },
@@ -525,18 +549,15 @@ function buildChapter2(mods: ModuleMap): (Paragraph | Table)[] {
     ]
   }
 
-  // FDC table — interpolate fdcPoints if present, else show known
   const percentiles = [10, 20, 30, 40, 50, 60, 70, 80, 90, 95]
   const fdcRows: (string | number | null | undefined)[][] = percentiles.map((pc) => {
     let q: number | null = null
     if (Array.isArray(hyd.fdcPoints) && hyd.fdcPoints.length > 0) {
-      // Interpolate
       const sorted = [...hyd.fdcPoints].sort((a: any, b: any) => a.percentile - b.percentile)
       const exact = sorted.find((pt: any) => Math.abs(pt.percentile - pc) < 0.5)
       if (exact) {
         q = exact.q ?? exact.flowM3s ?? null
       } else {
-        // linear interp
         for (let i = 0; i < sorted.length - 1; i++) {
           if (sorted[i].percentile <= pc && sorted[i + 1].percentile >= pc) {
             const a = sorted[i]
@@ -640,7 +661,7 @@ function buildChapter3(mods: ModuleMap): (Paragraph | Table)[] {
 
     h2('3.1 Side intake design'),
     p(
-      `A side intake (orifice type) has been adopted, drawing the design discharge of ${num(intakeIn.designFlowM3s, 3)} m³/s from the ${intakeIn.river ?? 'river'} on the [INSERT: left/right] bank, as recommended by AEPC for run-of-river mini-hydro schemes. The orifice is sized such that the approach velocity does not exceed 1.0 m/s to minimise sediment entrainment.`
+      `A side intake (orifice type) has been adopted, drawing the design discharge of ${num(intakeIn.designFlowM3s, 3)} m³/s from the river on the [INSERT: left/right] bank, as recommended by AEPC for run-of-river mini-hydro schemes. The orifice is sized such that the approach velocity does not exceed 1.0 m/s to minimise sediment entrainment.`
     ),
     placeholder('Bank selection rationale based on bend geometry, geological stability, and powerhouse access.'),
 
@@ -699,11 +720,12 @@ function buildChapter4(mods: ModuleMap): (Paragraph | Table)[] {
 
     h2('4.1 Headrace conveyance'),
     p(
-      `The headrace conveys the design discharge from the settling basin outlet to the forebay over a horizontal distance of ${num(hr.headrace?.lengthM, 1)} m. The conveyance type adopted is a ${hr.headrace?.type ?? '[INSERT: open canal / HDPE pipe]'}, sized using the Manning equation with a bed slope of ${num(hr.headrace?.bedSlopeM, 5)} m/m to maintain self-cleansing velocity while limiting head loss.`
+      `The headrace conveys the design discharge from the settling basin outlet to the forebay over a horizontal distance of ${num(hr.headrace?.lengthM, 1)} m. The conveyance type adopted is a ${prettifyConduitType(hr.headrace?.type)}, sized using the Manning equation with a bed slope of ${num(hr.headrace?.bedSlopeM, 5)} m/m to maintain self-cleansing velocity while limiting head loss.`
     ),
     h3('Table 4.1 — Headrace design summary'),
     kvTable([
-      { k: 'Type', v: hr.headrace?.type ?? '—' },
+      // FIX Bug 11 — prettify conduit enum
+      { k: 'Type', v: prettifyConduitType(hr.headrace?.type) },
       { k: 'Length', v: hr.headrace?.lengthM != null ? `${num(hr.headrace.lengthM, 1)} m` : '—' },
       { k: 'Bed slope', v: hr.headrace?.bedSlopeM != null ? `${num(hr.headrace.bedSlopeM, 5)} m/m` : '—' },
       { k: 'Velocity', v: hr.headrace?.velocity != null ? `${num(hr.headrace.velocity, 3)} m/s` : '—' },
@@ -747,14 +769,24 @@ function buildChapter5(mods: ModuleMap): (Paragraph | Table)[] {
     ]
   }
 
-  // Loss components
+  // FIX Bug 2 — try multiple key paths because the engine stores these nested
+  // (thickness.designPressureMpa, thickness.waveCelerity) OR at top level
+  // (designPressureMpa, waveVelocityMs), depending on the save path used.
+  const designPressureMpa = pst.designPressureMpa ?? pst.thickness?.designPressureMpa
+  const waveCelerityMs    = pst.waveVelocityMs    ?? pst.thickness?.waveCelerity
+  const thicknessMinMm   = pst.thickness?.computedMm ?? pst.thickness?.tDesignMm ?? pst.thickness?.tReqMm
+  // FIX Bug 3 — pull corrosion from inputs when not saved in outputs
+  const corrosionMm      = pst.thickness?.corrosionAllowanceMm ?? pstIn?.corrosionMm
+
+  // FIX Bug 8 — remove 'Other minor losses' row.
+  // hMinorM = sum of hEntrance + hContraction + hBends + hValve — it duplicates
+  // the four already-itemised rows and makes the column sum wrong.
   const lossRows: (string | number | null | undefined)[][] = [
-    ['Friction loss (Darcy-Weisbach)', num(pst.hFrictionM, 4), num(((pst.hFrictionM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
+    ['Friction loss (Manning)', num(pst.hFrictionM, 4), num(((pst.hFrictionM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
     ['Entrance loss', num(pst.hEntranceM, 4), num(((pst.hEntranceM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
     ['Contraction (taper) loss', num(pst.hContractionM, 4), num(((pst.hContractionM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
     ['Bend losses', num(pst.hBendsM, 4), num(((pst.hBendsM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
     ['Valve loss', num(pst.hValveM, 4), num(((pst.hValveM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
-    ['Other minor losses', num(pst.hMinorM, 4), num(((pst.hMinorM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
     ['TOTAL penstock loss', num(pst.hPenstockM, 4), num(((pst.hPenstockM ?? 0) / (pstIn.grossHead || 1)) * 100, 2) + ' %'],
   ]
 
@@ -779,15 +811,17 @@ function buildChapter5(mods: ModuleMap): (Paragraph | Table)[] {
     citation('Velocity range per AHEC-IITR §11.3.2 and IS 11639 Part 1 §3.'),
 
     h2('5.3 Wall thickness calculation'),
+    // FIX Bug 3 prose — pull corrosion value from data instead of hard-coding 1.0 mm
     p(
-      `The wall thickness has been calculated per IS 11639 Part 1 §4 using the design pressure (static head + transient water hammer), with a corrosion allowance of 1.0 mm and joint efficiency of 0.85 for double-welded butt joints. The selected commercial thickness is ${num(pst.thicknessSelectedMm, 1)} mm.`
+      `The wall thickness has been calculated per IS 11639 Part 1 §4 using the design pressure (static head + transient water hammer), with a corrosion allowance of ${corrosionMm != null ? num(corrosionMm, 1) + ' mm' : '1.5 mm'} and joint efficiency of 0.85 for double-welded butt joints. The selected commercial thickness is ${num(pst.thicknessSelectedMm, 1)} mm.`
     ),
     h3('Table 5.2 — Wall thickness design'),
     kvTable([
-      { k: 'Design pressure', v: pst.designPressureMpa != null ? `${num(pst.designPressureMpa, 3)} MPa` : '—' },
-      { k: 'Surge pressure wave velocity', v: pst.waveVelocityMs != null ? `${num(pst.waveVelocityMs, 0)} m/s` : '—' },
-      { k: 'Calculated minimum thickness', v: pst.thickness?.computedMm != null ? `${num(pst.thickness.computedMm, 2)} mm` : '—' },
-      { k: 'Corrosion allowance', v: pst.thickness?.corrosionAllowanceMm != null ? `${num(pst.thickness.corrosionAllowanceMm, 1)} mm` : '1.0 mm' },
+      // FIX Bug 2 — use resolved key paths
+      { k: 'Design pressure (static + surge)', v: designPressureMpa != null ? `${num(designPressureMpa, 3)} MPa` : '—' },
+      { k: 'Pressure wave celerity a', v: waveCelerityMs != null ? `${num(waveCelerityMs, 0)} m/s` : '—' },
+      { k: 'Calculated minimum thickness', v: thicknessMinMm != null ? `${num(thicknessMinMm, 2)} mm` : '—' },
+      { k: 'Corrosion allowance', v: corrosionMm != null ? `${num(corrosionMm, 1)} mm` : '—' },
       { k: 'Selected commercial thickness', v: pst.thicknessSelectedMm != null ? `${num(pst.thicknessSelectedMm, 1)} mm` : '—' },
     ]),
     blank(),
@@ -832,25 +866,17 @@ function buildChapter6(mods: ModuleMap): (Paragraph | Table)[] {
     ]
   }
 
-  // IS 5330:1984 §5.1 force component labels (12 forces)
-  const forceLabels: { k: string; label: string }[] = [
-    { k: 'f1', label: 'F1 — Self-weight of anchor block' },
-    { k: 'f2', label: 'F2 — Weight of pipe encased in block' },
-    { k: 'f3', label: 'F3 — Weight of water in pipe within block' },
-    { k: 'f4', label: 'F4 — Friction force at upstream saddle' },
-    { k: 'f5', label: 'F5 — Friction force at downstream saddle' },
-    { k: 'f6', label: 'F6 — Hydrostatic pressure (upstream bend)' },
-    { k: 'f7', label: 'F7 — Hydrostatic pressure (downstream bend)' },
-    { k: 'f8', label: 'F8 — Dynamic (centrifugal) force at bend' },
-    { k: 'f9', label: 'F9 — Pipe + water weight component along axis' },
-    { k: 'f10', label: 'F10 — Resultant axial force from upstream segment' },
-    { k: 'f11', label: 'F11 — Resultant axial force from downstream segment' },
-    { k: 'f12', label: 'F12 — Thermal / temperature-induced force' },
-  ]
-  const forceRows: (string | number | null | undefined)[][] = forceLabels.map((f) => [
-    f.label,
-    ab.forces?.[f.k] != null ? num(ab.forces[f.k], 2) : '—',
-  ])
+  // FIX Bug 1 — normalizeModuleData now stores forces as an array of IS 5330 §5.1
+  // objects {symbol, desc, kN, ref}. Read those directly.
+  // If forces is somehow still the old f1-f12 object (legacy), gracefully degrade.
+  const forceRows: (string | number | null | undefined)[][] = Array.isArray(ab.forces)
+    ? ab.forces.map((f: any) => [
+        f.ref
+          ? `${f.symbol}  —  ${f.desc}   [IS 5330:1984 ${f.ref}]`
+          : `${f.symbol}  —  ${f.desc}`,
+        f.kN != null ? num(f.kN, 2) : '0.00',
+      ])
+    : []
 
   const stab = ab.stability ?? {}
   const stabRows: (string | number | null | undefined)[][] = [
@@ -865,7 +891,7 @@ function buildChapter6(mods: ModuleMap): (Paragraph | Table)[] {
 
     h2('6.1 Anchor block sizing'),
     p(
-      `An RCC anchor block has been provided at the major horizontal/vertical bend on the penstock alignment. The block volume is ${num(ab.blockVolM3, 2)} m³ giving a self-weight of approximately ${num(ab.blockWeightKn, 1)} kN, sized to resist the resultant of all 12 force components per IS 5330:1984 §5.1 with adequate safety margin.`
+      `An RCC anchor block has been provided at the major horizontal/vertical bend on the penstock alignment. The block volume is ${num(ab.blockVolM3, 2)} m³ giving a self-weight of approximately ${num(ab.blockWeightKn, 1)} kN, sized to resist the resultant of all IS 5330:1984 §5.1 force components with adequate safety margin.`
     ),
 
     h2('6.2 IS 5330:1984 §5.1 force components'),
@@ -873,7 +899,8 @@ function buildChapter6(mods: ModuleMap): (Paragraph | Table)[] {
     dataTable({
       headers: ['Force component', 'Magnitude (kN)'],
       rows: forceRows,
-      widths: [Math.round(CONTENT_W * 0.7), CONTENT_W - Math.round(CONTENT_W * 0.7)],
+      widths: [Math.round(CONTENT_W * 0.75), CONTENT_W - Math.round(CONTENT_W * 0.75)],
+      rightAlignFromCol: 1,
     }),
     blank(),
 
@@ -918,8 +945,14 @@ function buildChapter7(mods: ModuleMap): (Paragraph | Table)[] {
     ]
   }
 
-  const turbineLabel = (ph.selected ?? ph.runner?.type ?? '').toString()
-  const turbineCap = turbineLabel.charAt(0).toUpperCase() + turbineLabel.slice(1)
+  const turbineRaw = (ph.selected ?? ph.runner?.type ?? '').toString()
+  const turbineCap = turbineRaw.charAt(0).toUpperCase() + turbineRaw.slice(1)
+  const isPeltonOrTurgo = ['pelton', 'turgo'].includes(turbineRaw.toLowerCase())
+
+  // FIX Bug 11 — capitalise first char of primaryRationale (engine emits lowercase)
+  const rationaleText = ph.primaryRationale
+    ? ph.primaryRationale.charAt(0).toUpperCase() + ph.primaryRationale.slice(1)
+    : ''
 
   return [
     h1('Chapter 7 — Powerhouse and Electromechanical Equipment'),
@@ -927,7 +960,7 @@ function buildChapter7(mods: ModuleMap): (Paragraph | Table)[] {
 
     h2('7.1 Turbine selection'),
     p(
-      `Based on the design net head of ${num(ph.hydraulics?.hNetM, 2)} m and design discharge of ${num(ph.hydraulics?.qDesignM3s, 3)} m³/s, a ${turbineCap} turbine has been selected.${ph.primaryRationale ? ' ' + ph.primaryRationale : ''}`
+      `Based on the design net head of ${num(ph.hydraulics?.hNetM, 2)} m and design discharge of ${num(ph.hydraulics?.qDesignM3s, 3)} m³/s, a ${turbineCap} turbine has been selected.${rationaleText ? ' ' + rationaleText : ''}`
     ),
     h3('Table 7.1 — Turbine specification'),
     kvTable([
@@ -935,9 +968,14 @@ function buildChapter7(mods: ModuleMap): (Paragraph | Table)[] {
       { k: 'Design net head', v: ph.hydraulics?.hNetM != null ? `${num(ph.hydraulics.hNetM, 2)} m` : '—' },
       { k: 'Design discharge', v: ph.hydraulics?.qDesignM3s != null ? `${num(ph.hydraulics.qDesignM3s, 3)} m³/s` : '—' },
       { k: 'Hydraulic power input', v: ph.hydraulics?.hydraulicPowerKw != null ? `${num(ph.hydraulics.hydraulicPowerKw, 1)} kW` : '—' },
-      { k: 'PCD (pitch circle diameter)', v: ph.runner?.pcdMm != null ? `${num(ph.runner.pcdMm, 0)} mm` : '—' },
+      // FIX Bug 10 — PCD is Pelton/Turgo geometry only; omit row for Crossflow/Francis
+      ...(isPeltonOrTurgo
+        ? [{ k: 'PCD (pitch circle diameter)', v: ph.runner?.pcdMm != null ? `${num(ph.runner.pcdMm, 0)} mm` : '—' }]
+        : []),
       { k: 'Runner diameter', v: ph.runner?.runnerDiameterMm != null ? `${num(ph.runner.runnerDiameterMm, 0)} mm` : '—' },
-      { k: 'Runner width', v: ph.runner?.runnerWidthMm != null ? `${num(ph.runner.runnerWidthMm, 0)} mm` : '—' },
+      ...(ph.runner?.runnerWidthMm != null
+        ? [{ k: 'Runner width', v: `${num(ph.runner.runnerWidthMm, 0)} mm` }]
+        : []),
       { k: 'Synchronous speed', v: ph.generator?.syncSpeedRpm != null ? `${num(ph.generator.syncSpeedRpm, 0)} rpm` : '—' },
       { k: 'Number of poles (generator)', v: ph.generator?.poles != null ? `${num(ph.generator.poles, 0)}` : '—' },
     ]),
@@ -952,7 +990,10 @@ function buildChapter7(mods: ModuleMap): (Paragraph | Table)[] {
       { k: 'Standard kVA (selected)', v: ph.generator?.standardKvaSelected != null ? `${num(ph.generator.standardKvaSelected, 0)} kVA` : '—' },
       { k: 'Power factor', v: ph.generator?.powerFactor != null ? num(ph.generator.powerFactor, 2) : '0.85' },
       { k: 'Voltage (line-line)', v: ph.generator?.voltageVoltsLine != null ? `${num(ph.generator.voltageVoltsLine, 0)} V` : '—' },
-      { k: 'Overall efficiency', v: ph.generator?.efficiencyOverall != null ? `${num(ph.generator.efficiencyOverall, 1)} %` : '—' },
+      // FIX Bug 4 — efficiencyOverall is a decimal (0.705); multiply × 100 for display
+      { k: 'Overall plant efficiency', v: ph.generator?.efficiencyOverall != null
+          ? `${num(ph.generator.efficiencyOverall * 100, 1)} %`
+          : '—' },
     ]),
     blank(),
 
@@ -994,8 +1035,11 @@ function buildChapter8(mods: ModuleMap): (Paragraph | Table)[] {
     ]
   }
 
+  // FIX Bug 5 — use row.nepali from the engine (already correct) rather than the
+  // module-level NEPALI_MONTHS array indexed naively. Both paths now produce the
+  // same result because NEPALI_MONTHS is also fixed, but row.nepali is authoritative.
   const monthlyRows: (string | number | null | undefined)[][] = (en.rows ?? []).map((r: any, i: number) => [
-    NEPALI_MONTHS[i] ?? r.nepali ?? `M${i + 1}`,
+    r.nepali ?? NEPALI_MONTHS[i] ?? `M${i + 1}`,
     r.english ?? '',
     num(r.qAvailableM3s, 3),
     num(r.qPlantM3s, 3),
@@ -1004,13 +1048,15 @@ function buildChapter8(mods: ModuleMap): (Paragraph | Table)[] {
     num(r.plantFactorPercent, 1),
   ])
 
-  // Compute dry / wet split (Poush–Chaitra = months 8-11; Baisakh-Mangsir = 0-7)
+  // FIX Bug 5 (dry/wet split) — Dry season = Poush–Chaitra = Dec(11), Jan(0), Feb(1), Mar(2)
+  // per NEA PPA dry-tariff months definition. Previous code used indices 8-11 (Sep-Dec) which
+  // is wrong.
   let dry = 0, wet = 0
   if (Array.isArray(en.rows)) {
     en.rows.forEach((r: any, i: number) => {
       const e = Number(r.energyMwh ?? 0)
-      if (i >= 8 && i <= 11) dry += e
-      else wet += e
+      if (i === 11 || i <= 2) dry += e   // Poush(Dec), Magh(Jan), Falgun(Feb), Chaitra(Mar)
+      else wet += e                        // Baisakh(Apr) through Mangsir(Nov)
     })
   }
 
@@ -1047,8 +1093,9 @@ function buildChapter8(mods: ModuleMap): (Paragraph | Table)[] {
       { k: 'Q₉₀ (firm flow)', v: en.q90M3s != null ? `${num(en.q90M3s, 3)} m³/s` : '—' },
       { k: 'Dry-season energy (Poush–Chaitra)', v: dry > 0 ? `${num(dry, 0)} MWh` : '—' },
       { k: 'Wet-season energy (Baisakh–Mangsir)', v: wet > 0 ? `${num(wet, 0)} MWh` : '—' },
-      { k: 'Driest month', v: en.dryMonthIndex != null ? NEPALI_MONTHS[en.dryMonthIndex] : '—' },
-      { k: 'Wettest month', v: en.wetMonthIndex != null ? NEPALI_MONTHS[en.wetMonthIndex] : '—' },
+      // FIX Bugs 6+7 — dryMonthIndex/wetMonthIndex now map correctly with fixed NEPALI_MONTHS
+      { k: 'Driest month', v: en.dryMonthIndex != null ? (en.rows?.[en.dryMonthIndex]?.nepali ?? NEPALI_MONTHS[en.dryMonthIndex] ?? '—') : '—' },
+      { k: 'Wettest month', v: en.wetMonthIndex != null ? (en.rows?.[en.wetMonthIndex]?.nepali ?? NEPALI_MONTHS[en.wetMonthIndex] ?? '—') : '—' },
     ]),
     blank(),
 
@@ -1091,7 +1138,6 @@ function buildChapter9(mods: ModuleMap): (Paragraph | Table)[] {
   const finIn = finData?.inputs ?? {}
   const capex = fin.capex ?? {}
 
-  // BoQ table — iterate all known line items
   const boqOrder = Object.keys(BOQ_LABELS)
   const total = Number(capex.totalCapExNpr ?? 0) || 0
   const boqRows: (string | number | null | undefined)[][] = boqOrder
@@ -1108,10 +1154,7 @@ function buildChapter9(mods: ModuleMap): (Paragraph | Table)[] {
       ]
     })
 
-  // Civil and EM subtotals
-  if (capex.civilSubtotalNpr != null || capex.emSubtotalNpr != null) {
-    boqRows.push(['—', '—', '—', '—'])
-  }
+  // FIX Bug 12 — remove the '—' separator row before subtotals (cosmetic table glitch)
   if (capex.civilSubtotalNpr != null) {
     boqRows.push([
       'Civil subtotal (A1–A8)',
@@ -1135,7 +1178,7 @@ function buildChapter9(mods: ModuleMap): (Paragraph | Table)[] {
     '100.0',
   ])
 
-  // Cashflow (first 15 operating years)
+  // Operating cashflow (first 15 operating years — excludes construction)
   const cashflows = (fin.cashflows ?? []) as any[]
   const operatingCashflows = cashflows
     .filter((cf) => Number(cf.operatingYear ?? 0) >= 1)
@@ -1150,7 +1193,6 @@ function buildChapter9(mods: ModuleMap): (Paragraph | Table)[] {
     nprLakh(cf.cumulativeNcfBefore),
   ])
 
-  // Sensitivity
   const sensitivity = (fin.sensitivity ?? []) as any[]
   const sensitivityRows: (string | number | null | undefined)[][] = sensitivity.map((s: any) => [
     s.scenario ?? '—',
@@ -1159,7 +1201,6 @@ function buildChapter9(mods: ModuleMap): (Paragraph | Table)[] {
     s.paybackYears != null ? num(s.paybackYears, 2) : '—',
   ])
 
-  // Lender checklist
   const lender = (fin.lenderChecklist ?? []) as any[]
   const lenderRows: (string | number | null | undefined)[][] = lender.map((l: any) => [
     l.label ?? l.code ?? '—',
@@ -1167,7 +1208,6 @@ function buildChapter9(mods: ModuleMap): (Paragraph | Table)[] {
     l.passed ? 'PASS' : 'FAIL',
   ])
 
-  // Warnings
   const warnings = (fin.warnings ?? []) as any[]
 
   return [
@@ -1351,12 +1391,14 @@ function buildChapter10(mods: ModuleMap): (Paragraph | Table)[] {
     recommendColor = C.red
   }
 
+  const turbineRaw = (ph.selected ?? 'turbine').toString()
+
   return [
     h1('Chapter 10 — Conclusions and Recommendations'),
 
     h2('10.1 Technical summary'),
     p(
-      `The hydrology, civil works, and electromechanical equipment have been designed in accordance with AEPC DFS 2014, the AEPC Reference Micro-Hydro Power Standard 2014, and the relevant Indian Standards (IS 5330:1984, IS 11625:1986, IS 11639 Parts 1–3). The selected ${(ph.selected ?? 'turbine').toString()} turbine is well-matched to the design head and flow envelope, and the resulting installed capacity of ${num(ph.generator?.electricalPowerKw, 1)} kW yields an annual energy of ${num(en.annualEnergyMwh, 0)} MWh at a plant factor of ${num(en.plantFactorPercent, 1)} %.`
+      `The hydrology, civil works, and electromechanical equipment have been designed in accordance with AEPC DFS 2014, the AEPC Reference Micro-Hydro Power Standard 2014, and the relevant Indian Standards (IS 5330:1984, IS 11625:1986, IS 11639 Parts 1–3). The selected ${turbineRaw.charAt(0).toUpperCase() + turbineRaw.slice(1)} turbine is well-matched to the design head and flow envelope, and the resulting installed capacity of ${num(ph.generator?.electricalPowerKw, 1)} kW yields an annual energy of ${num(en.annualEnergyMwh, 0)} MWh at a plant factor of ${num(en.plantFactorPercent, 1)} %.`
     ),
     p(
       'All civil structures (intake, settling basin, headrace, forebay, penstock, anchor blocks, powerhouse) have been sized based on the AEPC reference standard and verified against the relevant code criteria.'
@@ -1408,23 +1450,36 @@ function buildAnnexA(project: ProjectRow, mods: ModuleMap): (Paragraph | Table)[
 }
 
 // ────────────────────────────────────────────────────────────
-// Annex B — Full 30-year cashflow (portrait, small font)
+// Annex B — Full 30-year cashflow
 // ────────────────────────────────────────────────────────────
 
 function buildAnnexB(mods: ModuleMap) {
   const fin = mods.get('financial')?.outputs ?? {}
   const cashflows = (fin.cashflows ?? []) as any[]
 
-  // 7 key columns — fits A4 portrait at 16pt
-  const cfRows: (string | number | null | undefined)[][] = cashflows.map((cf: any) => [
-    cf.operatingYear ?? cf.year ?? '—',
-    nprLakh(cf.revenue),
-    nprLakh(cf.opex),
-    nprLakh(cf.debtService),
-    nprLakh(cf.ncfBeforeFinancing),
-    nprLakh(cf.ncfAfterFinancing),
-    nprLakh(cf.cumulativeNcfBefore),
-  ])
+  // FIX Bug 9 — label construction-period rows C1, C2 so they are distinct
+  // from operating Year 1. Identify construction years as rows where
+  // operatingYear <= 0 or revenue === 0.
+  let constrCount = 0
+  const cfRows: (string | number | null | undefined)[][] = cashflows.map((cf: any) => {
+    const opYear = Number(cf.operatingYear ?? cf.year ?? 0)
+    let yrLabel: string
+    if (opYear <= 0 || Number(cf.revenue ?? 0) === 0) {
+      constrCount++
+      yrLabel = `C${constrCount}`
+    } else {
+      yrLabel = String(opYear)
+    }
+    return [
+      yrLabel,
+      nprLakh(cf.revenue),
+      nprLakh(cf.opex),
+      nprLakh(cf.debtService),
+      nprLakh(cf.ncfBeforeFinancing),
+      nprLakh(cf.ncfAfterFinancing),
+      nprLakh(cf.cumulativeNcfBefore),
+    ]
+  })
 
   const w1 = Math.round(CONTENT_W * 0.08)
   const w2 = Math.round((CONTENT_W - w1) / 6)
@@ -1432,7 +1487,7 @@ function buildAnnexB(mods: ModuleMap) {
 
   return [
     h1('Annex B — Full Project Cashflow'),
-    citation('All figures in NPR lakh. Generated from financial module outputs.'),
+    citation('All figures in NPR lakh. C1, C2 = construction years (no revenue). Generated from financial module outputs.'),
     cfRows.length === 0
       ? placeholder('No cashflow rows available — re-run financial module.')
       : dataTable({
@@ -1447,11 +1502,6 @@ function buildAnnexB(mods: ModuleMap) {
 
 // ────────────────────────────────────────────────────────────
 // Cover page children
-//
-// CHANGED Day 12: accepts `profile?: EngineerProfile` and uses
-// it to pre-populate the "Prepared by" line on the cover.
-// Falls back to the amber [INSERT] placeholder when profile is
-// null / undefined or when every field is blank.
 // ────────────────────────────────────────────────────────────
 
 function buildCoverChildren(
@@ -1467,10 +1517,6 @@ function buildCoverChildren(
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
-  // ── Prepared-by line ────────────────────────────────────────────────────
-  // Composed from the engineer profile saved on the Settings page.
-  // Format: "Full Name · NEC Reg. NEC-CIV-XXXXX · Senior Civil Engineer · Firm Name"
-  // Each field is only included when present and non-blank.
   const preparedByParts = [
     profile?.full_name,
     profile?.nec_reg_no ? `NEC Reg. ${profile.nec_reg_no}` : null,
@@ -1576,7 +1622,6 @@ function buildCoverChildren(
       children: [new TextRun({ text: 'Prepared by', font: FONT, size: 20, color: C.gray })],
     }),
 
-    // ── CHANGED: dynamic profile line vs amber placeholder ──────────────
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 240 },
@@ -1688,7 +1733,7 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
           ...o,
           headrace: {
             lengthM:   i?.length,
-            type:      i?.conduitType ?? i?.shape,
+            type:      i?.conduitType ?? i?.shape,  // prettifyConduitType applied in chapter builders
             bedSlopeM: i?.bedSlope,
             velocity:  o?.velocity,
             hLossM:    o?.hHeadrace ?? o?.hFriction,
@@ -1706,6 +1751,9 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
   }
 
   // ── ANCHOR BLOCK ───────────────────────────────────────────
+  // FIX Bug 1 — replace the invented F1–F12 scheme with the IS 5330:1984 §5.1
+  // force symbols. An array of {symbol, desc, kN, ref} objects is built so the
+  // chapter builder can render them directly without any further key-lookup logic.
   const abRow = raw.get('anchorblock')
   if (abRow) {
     const i = abRow.inputs as any
@@ -1720,24 +1768,28 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
       const bearAct  = govBearData?.bearingMaxKpa as number
       const bearAllow = (i?.allowableBearingKpa ?? 450) as number
       const N2kN = (n: number | null | undefined) => n != null ? n / 1000 : null
+
       norm.set('anchorblock', {
         inputs: i,
         outputs: {
           ...o,
-          forces: {
-            f1:  N2kN(o.blockSelfWeightN),
-            f2:  N2kN(o.Fs_N),
-            f3:  N2kN(o.Fu_N),
-            f4:  N2kN(o.Fd_exp_N),
-            f5:  N2kN(o.Fd_N),
-            f6:  N2kN(o.Spd_N),
-            f7:  N2kN(o.Spu_N),
-            f8:  N2kN(o.Du_N),
-            f9:  N2kN(o.Dd_N),
-            f10: N2kN(o.Sed_N),
-            f11: N2kN(o.Seu_N),
-            f12: N2kN(o.bendResultantN),
-          },
+          // IS 5330:1984 §5.1 force array in standard symbol order
+          forces: [
+            { symbol: 'W_block', desc: 'Block self-weight  (ρ_c · L · W · H · g)',           kN: N2kN(o.blockSelfWeightN), ref: '' },
+            { symbol: 'Fs',      desc: 'Hydrostatic axial force (per arm)',                   kN: N2kN(o.Fs_N),            ref: '§5.1(a)' },
+            { symbol: 'Fd',      desc: 'Dynamic momentum at bend',                            kN: N2kN(o.Fd_N),            ref: '§5.1(b)' },
+            { symbol: 'Du',      desc: 'Gravity component, uphill pipe',                      kN: N2kN(o.Du_N),            ref: '§5.1(c)' },
+            { symbol: 'Dd',      desc: 'Gravity component, downhill pipe',                    kN: N2kN(o.Dd_N),            ref: '§5.1(d)' },
+            { symbol: 'Spu',     desc: 'Saddle friction, uphill',                             kN: N2kN(o.Spu_N),           ref: '§5.1(e)' },
+            { symbol: 'Spd',     desc: 'Saddle friction, downhill',                           kN: N2kN(o.Spd_N),           ref: '§5.1(f)' },
+            { symbol: 'Seu',     desc: 'EJ packing friction, uphill',                         kN: N2kN(o.Seu_N),           ref: '§5.1(g)' },
+            { symbol: 'Sed',     desc: 'EJ packing friction, downhill',                       kN: N2kN(o.Sed_N),           ref: '§5.1(h)' },
+            { symbol: 'Fu',      desc: 'Hydrostatic on EJ end, uphill',                      kN: N2kN(o.Fu_N),            ref: '§5.1(j)' },
+            { symbol: "Fd'",     desc: 'Hydrostatic on EJ end, downhill',                    kN: N2kN(o.Fd_exp_N),        ref: '§5.1(k)' },
+            { symbol: 'Lu',      desc: 'Reducer force, above anchor',                        kN: o.Lu_N != null ? N2kN(o.Lu_N) : 0,  ref: '§5.1(m)' },
+            { symbol: 'Ld',      desc: 'Reducer force, below anchor',                        kN: o.Ld_N != null ? N2kN(o.Ld_N) : 0,  ref: '§5.1(n)' },
+            { symbol: 'R_bend',  desc: '2·Fs·sin(Δ/2) + Fd  (resultant at bend)',            kN: N2kN(o.bendResultantN),  ref: '§5.1(a,b)' },
+          ],
           stability: {
             sliding:     { factor: fosSlid, required: 1.5, passed: fosSlid  >= 1.5 },
             overturning: { factor: fosOver, required: 1.5, passed: fosOver  >= 1.5 },
@@ -1757,10 +1809,6 @@ function normalizeModuleData(raw: ModuleMap): ModuleMap {
 
 // ────────────────────────────────────────────────────────────
 // Public entry point — buildDfsReport
-//
-// CHANGED Day 12: accepts optional `profile` (EngineerProfile)
-// and passes it down to buildCoverChildren so the cover page
-// shows real engineer credentials instead of [INSERT] amber text.
 // ────────────────────────────────────────────────────────────
 
 export function buildDfsReport(
@@ -1769,7 +1817,6 @@ export function buildDfsReport(
   profile?: EngineerProfile,
   watermark?: boolean,
 ): Document {
-  // Normalise all module JSONB keys to canonical names before building
   const mods = normalizeModuleData(rawMods)
   const today = new Date()
   const headerProj = project.name.length > 55 ? project.name.slice(0, 52) + '\u2026' : project.name
@@ -1869,7 +1916,6 @@ export function buildDfsReport(
         headers: { default: mainHeader, first: emptyHeader },
         footers: { default: mainFooter, first: emptyFooter },
         children: [
-          // CHANGED: pass profile to cover builder
           ...buildCoverChildren(project, mods, profile),
           ...buildSalientFeatures(project, mods),
           ...buildTOC(),
