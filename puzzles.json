@@ -1,0 +1,362 @@
+[
+  {
+    "title": "Largest countries by area",
+    "subtitle": "Rank from largest to smallest",
+    "category": "Geography",
+    "items": ["Russia", "Canada", "United States", "China", "Brazil", "Australia"]
+  },
+  {
+    "title": "Most populous countries",
+    "subtitle": "Rank from most to least populous (2024)",
+    "category": "Geography",
+    "items": ["India", "China", "United States", "Indonesia", "Pakistan", "Brazil"]
+  },
+  {
+    "title": "Tallest mountains in the world",
+    "subtitle": "Rank from tallest to shortest",
+    "category": "Geography",
+    "items": ["Everest", "K2", "Kangchenjunga", "Lhotse", "Makalu", "Cho Oyu"]
+  },
+  {
+    "title": "Longest rivers in the world",
+    "subtitle": "Rank from longest to shortest",
+    "category": "Geography",
+    "items": ["Nile", "Amazon", "Yangtze", "Mississippi-Missouri", "Yenisei", "Yellow River"]
+  },
+  {
+    "title": "Largest oceans and seas",
+    "subtitle": "Rank by surface area, largest first",
+    "category": "Geography",
+    "items": ["Pacific Ocean", "Atlantic Ocean", "Indian Ocean", "Southern Ocean", "Arctic Ocean", "Mediterranean Sea"]
+  },
+  {
+    "title": "Continents by area",
+    "subtitle": "Rank from largest to smallest",
+    "category": "Geography",
+    "items": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe"]
+  },
+  {
+    "title": "Largest islands in the world",
+    "subtitle": "Rank by area, largest first",
+    "category": "Geography",
+    "items": ["Greenland", "New Guinea", "Borneo", "Madagascar", "Baffin Island", "Sumatra"]
+  },
+  {
+    "title": "Largest lakes by surface area",
+    "subtitle": "Rank from largest to smallest",
+    "category": "Geography",
+    "items": ["Caspian Sea", "Lake Superior", "Lake Victoria", "Lake Huron", "Lake Michigan", "Lake Tanganyika"]
+  },
+  {
+    "title": "Largest US states by area",
+    "subtitle": "Rank from largest to smallest",
+    "category": "Geography",
+    "items": ["Alaska", "Texas", "California", "Montana", "New Mexico", "Arizona"]
+  },
+  {
+    "title": "Most populous US states",
+    "subtitle": "Rank from most to least populous (2024)",
+    "category": "Geography",
+    "items": ["California", "Texas", "Florida", "New York", "Pennsylvania", "Illinois"]
+  },
+  {
+    "title": "Most populous states in India",
+    "subtitle": "Rank from most to least populous",
+    "category": "Geography",
+    "items": ["Uttar Pradesh", "Maharashtra", "Bihar", "West Bengal", "Madhya Pradesh", "Tamil Nadu"]
+  },
+  {
+    "title": "Largest African countries by area",
+    "subtitle": "Rank from largest to smallest",
+    "category": "Geography",
+    "items": ["Algeria", "DR Congo", "Sudan", "Libya", "Chad", "Niger"]
+  },
+  {
+    "title": "Largest South American countries",
+    "subtitle": "Rank by area, largest first",
+    "category": "Geography",
+    "items": ["Brazil", "Argentina", "Peru", "Colombia", "Bolivia", "Venezuela"]
+  },
+  {
+    "title": "Largest deserts in the world",
+    "subtitle": "Rank by area (polar deserts included)",
+    "category": "Geography",
+    "items": ["Antarctic Desert", "Arctic Desert", "Sahara", "Arabian Desert", "Gobi Desert", "Patagonian Desert"]
+  },
+  {
+    "title": "Tallest completed buildings",
+    "subtitle": "Rank from tallest to shortest",
+    "category": "Architecture",
+    "items": ["Burj Khalifa", "Merdeka 118", "Shanghai Tower", "Abraj Al-Bait", "Ping An Finance Centre", "Lotte World Tower"]
+  },
+  {
+    "title": "Most populous metro areas",
+    "subtitle": "Rank from most to least populous (2024)",
+    "category": "Geography",
+    "items": ["Tokyo", "Delhi", "Shanghai", "Dhaka", "São Paulo", "Cairo"]
+  },
+  {
+    "title": "Most visited countries",
+    "subtitle": "Rank by international arrivals (2019)",
+    "category": "Geography",
+    "items": ["France", "Spain", "United States", "China", "Italy", "Turkey"]
+  },
+  {
+    "title": "Highest peaks on six continents",
+    "subtitle": "Rank from tallest to shortest",
+    "category": "Geography",
+    "items": ["Everest (Asia)", "Aconcagua (S. America)", "Denali (N. America)", "Kilimanjaro (Africa)", "Elbrus (Europe)", "Vinson (Antarctica)"]
+  },
+  {
+    "title": "Planets by distance from the Sun",
+    "subtitle": "Rank from nearest to farthest",
+    "category": "Space",
+    "items": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn"]
+  },
+  {
+    "title": "Planets by size",
+    "subtitle": "Rank from largest to smallest by diameter",
+    "category": "Space",
+    "items": ["Jupiter", "Saturn", "Uranus", "Neptune", "Earth", "Venus"]
+  },
+  {
+    "title": "Largest moons in the solar system",
+    "subtitle": "Rank by diameter, largest first",
+    "category": "Space",
+    "items": ["Ganymede", "Titan", "Callisto", "Io", "Earth's Moon", "Europa"]
+  },
+  {
+    "title": "Space milestones in history",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Space",
+    "items": ["Sputnik 1 launched", "Gagarin first in space", "Apollo 11 Moon landing", "Voyager 1 launched", "Hubble launched", "Curiosity lands on Mars"]
+  },
+  {
+    "title": "Most spoken native languages",
+    "subtitle": "Rank by native speakers, most first",
+    "category": "Culture",
+    "items": ["Mandarin Chinese", "Spanish", "English", "Hindi", "Arabic", "Bengali"]
+  },
+  {
+    "title": "Largest religions by adherents",
+    "subtitle": "Rank from most to least followers",
+    "category": "Culture",
+    "items": ["Christianity", "Islam", "Hinduism", "Buddhism", "Folk religions", "Judaism"]
+  },
+  {
+    "title": "Major wars by start year",
+    "subtitle": "Order from earliest to most recent",
+    "category": "History",
+    "items": ["American Revolution", "Napoleonic Wars", "American Civil War", "World War I", "World War II", "Korean War"]
+  },
+  {
+    "title": "Voyages of discovery",
+    "subtitle": "Order from earliest to most recent",
+    "category": "History",
+    "items": ["Columbus reaches the Americas", "Vasco da Gama reaches India", "Magellan's circumnavigation", "Cook's first voyage", "Shackleton's Endurance", "Hillary climbs Everest"]
+  },
+  {
+    "title": "Roman emperors by reign start",
+    "subtitle": "Order from earliest to most recent",
+    "category": "History",
+    "items": ["Augustus", "Nero", "Hadrian", "Marcus Aurelius", "Constantine the Great", "Justinian I"]
+  },
+  {
+    "title": "Landmark science publications",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Science",
+    "items": ["Galileo's Sidereus Nuncius", "Newton's Principia", "Darwin's Origin of Species", "Einstein's Special Relativity", "Watson & Crick on DNA", "Higgs boson proposal"]
+  },
+  {
+    "title": "Disney animated classics",
+    "subtitle": "Order by release date, earliest first",
+    "category": "Film",
+    "items": ["Snow White", "Pinocchio", "Cinderella", "Sleeping Beauty", "The Little Mermaid", "Beauty and the Beast"]
+  },
+  {
+    "title": "Classic novels by publication",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Literature",
+    "items": ["Don Quixote", "Pride and Prejudice", "Moby-Dick", "War and Peace", "Nineteen Eighty-Four", "The Lord of the Rings"]
+  },
+  {
+    "title": "Famous inventions through time",
+    "subtitle": "Order from earliest to most recent",
+    "category": "History",
+    "items": ["The wheel", "Printing press", "Steam engine", "Telephone", "Light bulb", "World Wide Web"]
+  },
+  {
+    "title": "Famous scientists by birth year",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Science",
+    "items": ["Isaac Newton", "Charles Darwin", "Marie Curie", "Albert Einstein", "Richard Feynman", "Stephen Hawking"]
+  },
+  {
+    "title": "Major battles in history",
+    "subtitle": "Order from earliest to most recent",
+    "category": "History",
+    "items": ["Battle of Marathon", "Battle of Hastings", "Battle of Agincourt", "Battle of Waterloo", "Battle of Gettysburg", "D-Day Normandy"]
+  },
+  {
+    "title": "Summer Olympic host cities",
+    "subtitle": "Order from most recent to earliest",
+    "category": "Sports",
+    "items": ["Paris", "Tokyo", "Rio de Janeiro", "London", "Beijing", "Athens"]
+  },
+  {
+    "title": "Recent US presidents",
+    "subtitle": "By first inauguration, most recent first",
+    "category": "History",
+    "items": ["Joe Biden", "Donald Trump", "Barack Obama", "George W. Bush", "Bill Clinton", "George H.W. Bush"]
+  },
+  {
+    "title": "Programming languages by creation",
+    "subtitle": "Order from oldest to newest",
+    "category": "Tech",
+    "items": ["Fortran", "COBOL", "C", "Python", "Java", "Swift"]
+  },
+  {
+    "title": "Car manufacturers by founding",
+    "subtitle": "Order from earliest to most recent",
+    "category": "History",
+    "items": ["Ford", "Chevrolet", "BMW", "Volkswagen", "Ferrari", "Tesla"]
+  },
+  {
+    "title": "Major sports leagues by founding",
+    "subtitle": "Order from oldest to newest",
+    "category": "Sports",
+    "items": ["NHL", "NFL", "NBA", "Premier League", "MLS", "IPL"]
+  },
+  {
+    "title": "Apple products by release year",
+    "subtitle": "Order from oldest to newest",
+    "category": "Tech",
+    "items": ["Apple I", "Apple II", "Macintosh", "iMac", "iPod", "iPhone"]
+  },
+  {
+    "title": "iPhone models by release year",
+    "subtitle": "Order from oldest to newest",
+    "category": "Tech",
+    "items": ["iPhone (1st gen)", "iPhone 3G", "iPhone 4", "iPhone 5", "iPhone 6", "iPhone X"]
+  },
+  {
+    "title": "The Beatles studio albums",
+    "subtitle": "Order by UK release, earliest first",
+    "category": "Music",
+    "items": ["Please Please Me", "With the Beatles", "A Hard Day's Night", "Beatles for Sale", "Help!", "Rubber Soul"]
+  },
+  {
+    "title": "Pixar feature films",
+    "subtitle": "Order by release date, earliest first",
+    "category": "Film",
+    "items": ["Toy Story", "A Bug's Life", "Toy Story 2", "Monsters, Inc.", "Finding Nemo", "The Incredibles"]
+  },
+  {
+    "title": "Star Wars films (Episodes I–VI)",
+    "subtitle": "Order by release date, earliest first",
+    "category": "Film",
+    "items": ["A New Hope", "The Empire Strikes Back", "Return of the Jedi", "The Phantom Menace", "Attack of the Clones", "Revenge of the Sith"]
+  },
+  {
+    "title": "Harry Potter books by publication",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Literature",
+    "items": ["Philosopher's Stone", "Chamber of Secrets", "Prisoner of Azkaban", "Goblet of Fire", "Order of the Phoenix", "Half-Blood Prince"]
+  },
+  {
+    "title": "Highest-grossing films worldwide",
+    "subtitle": "Rank from highest to lowest gross",
+    "category": "Film",
+    "items": ["Avatar", "Avengers: Endgame", "Avatar: The Way of Water", "Titanic", "Star Wars: The Force Awakens", "Avengers: Infinity War"]
+  },
+  {
+    "title": "Best-selling video games of all time",
+    "subtitle": "Rank by total copies sold",
+    "category": "Games",
+    "items": ["Minecraft", "Grand Theft Auto V", "Tetris (EA)", "Wii Sports", "PUBG", "Mario Kart 8"]
+  },
+  {
+    "title": "Best-selling music artists ever",
+    "subtitle": "Rank by certified units sold",
+    "category": "Music",
+    "items": ["The Beatles", "Elvis Presley", "Michael Jackson", "Madonna", "Elton John", "Led Zeppelin"]
+  },
+  {
+    "title": "Most subscribed YouTube channels",
+    "subtitle": "Rank by subscribers (2024)",
+    "category": "Internet",
+    "items": ["MrBeast", "T-Series", "Cocomelon", "SET India", "Kids Diana Show", "Like Nastya"]
+  },
+  {
+    "title": "Most followed Instagram accounts",
+    "subtitle": "Rank by followers (2024)",
+    "category": "Internet",
+    "items": ["Instagram", "Cristiano Ronaldo", "Lionel Messi", "Selena Gomez", "Kylie Jenner", "Dwayne Johnson"]
+  },
+  {
+    "title": "NBA franchises by championships",
+    "subtitle": "Rank by total titles won",
+    "category": "Sports",
+    "items": ["Boston Celtics", "Los Angeles Lakers", "Golden State Warriors", "Chicago Bulls", "San Antonio Spurs", "Miami Heat"]
+  },
+  {
+    "title": "Summer Olympic gold medals",
+    "subtitle": "All-time golds by country, most first",
+    "category": "Sports",
+    "items": ["United States", "Soviet Union", "Great Britain", "Germany", "China", "France"]
+  },
+  {
+    "title": "F1 champions by first title year",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Sports",
+    "items": ["Juan Manuel Fangio", "Jackie Stewart", "Niki Lauda", "Ayrton Senna", "Michael Schumacher", "Lewis Hamilton"]
+  },
+  {
+    "title": "Largest companies by revenue",
+    "subtitle": "Rank by 2024 Fortune Global 500",
+    "category": "Business",
+    "items": ["Walmart", "Amazon", "State Grid", "Saudi Aramco", "Sinopec Group", "China National Petroleum"]
+  },
+  {
+    "title": "Largest economies by nominal GDP",
+    "subtitle": "Rank from largest to smallest (2024)",
+    "category": "Business",
+    "items": ["United States", "China", "Germany", "Japan", "India", "United Kingdom"]
+  },
+  {
+    "title": "Top coffee-producing countries",
+    "subtitle": "Rank by production, most first",
+    "category": "Food",
+    "items": ["Brazil", "Vietnam", "Colombia", "Indonesia", "Ethiopia", "Uganda"]
+  },
+  {
+    "title": "Top wine-producing countries",
+    "subtitle": "Rank by production, most first",
+    "category": "Food",
+    "items": ["Italy", "France", "Spain", "United States", "Australia", "Chile"]
+  },
+  {
+    "title": "Tallest waterfalls in the world",
+    "subtitle": "Rank by total height, tallest first",
+    "category": "Geography",
+    "items": ["Angel Falls", "Tugela Falls", "Tres Hermanas", "Olo'upena Falls", "Yumbilla Falls", "Vinnufossen"]
+  },
+  {
+    "title": "Fastest land animals",
+    "subtitle": "Rank by top speed, fastest first",
+    "category": "Nature",
+    "items": ["Cheetah", "Pronghorn", "Springbok", "Wildebeest", "Brown Hare", "Greyhound"]
+  },
+  {
+    "title": "Largest land animals by weight",
+    "subtitle": "Rank from heaviest to lightest",
+    "category": "Nature",
+    "items": ["African elephant", "Asian elephant", "White rhinoceros", "Hippopotamus", "Gaur", "Giraffe"]
+  },
+  {
+    "title": "Tech company founding years",
+    "subtitle": "Order from earliest to most recent",
+    "category": "Tech",
+    "items": ["IBM", "HP", "Intel", "Microsoft", "Apple", "Amazon"]
+  }
+]
