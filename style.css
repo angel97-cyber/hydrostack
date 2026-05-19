@@ -611,3 +611,24 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+.correct-reveal {
+  margin-top: 18px;
+  text-align: center;
+}
+.correct-list {
+  text-align: left;
+  margin: 14px auto 0;
+  padding-left: 22px;
+  max-width: 280px;
+}
+.correct-list li {
+  font-size: 14px;
+  color: var(--ink-dim);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.correct-list li::marker {
+  color: var(--surf);
+  font-family: var(--mono);
+  font-size: 12px;
+}

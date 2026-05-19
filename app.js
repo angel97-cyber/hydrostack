@@ -202,7 +202,12 @@ function showResults(score, results, streak) {
     streak
   });
 }
-
+$("correct-reveal").hidden = false;
+  $("reveal-btn").onclick = () => {
+    $("correct-list").innerHTML = PUZZLE.items.map(item => `<li>${escapeHTML(item)}</li>`).join("");
+    $("correct-list").hidden = false;
+    $("reveal-btn").hidden = true;
+  };
 function blurbFor(score) {
   if (score === 6) return "A perfect stack. ✨";
   if (score === 5) return "Beautifully poured.";
