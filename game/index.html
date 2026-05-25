@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#06304a">
+  <meta name="description" content="A daily ranking puzzle. Stack six things in the right order. New puzzle every day.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Stackle — the daily ranking puzzle">
+  <meta property="og:description" content="Stack six things in the right order. One new puzzle every day. 30 seconds to play.">
+  <meta property="og:url" content="https://usehydrostack.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://usehydrostack.com/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+
+  <title>Stackle — daily ranking puzzle</title>
+</head>
+<body>
+
+  <main class="shell">
+
+    <header class="masthead">
+      <div class="masthead-row">
+        <div class="wordmark">
+          <span class="wordmark-stack" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </span>
+          <span class="wordmark-text">Stackle</span>
+        </div>
+        <button class="icon-btn" id="open-stats" aria-label="Open stats">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="13" width="3" height="5"/><rect x="12" y="9" width="3" height="9"/><rect x="17" y="5" width="3" height="13"/></svg>
+        </button>
+      </div>
+      <div class="meta-row">
+        <span class="puzzle-no" id="puzzle-no">Stackle #—</span>
+        <span class="dot">·</span>
+        <span class="puzzle-date" id="puzzle-date"></span>
+      </div>
+    </header>
+
+    <section class="puzzle">
+      <h1 class="puzzle-title" id="puzzle-title">Loading…</h1>
+      <p class="puzzle-subtitle" id="puzzle-subtitle"></p>
+
+      <div class="rank-frame">
+        <div class="rank-label rank-top">Most / Top</div>
+        <ol class="stack" id="stack" aria-label="Drag to reorder">
+          <!-- items injected by app.js -->
+        </ol>
+        <div class="rank-label rank-bottom">Least / Bottom</div>
+      </div>
+
+      <div class="actions" id="actions">
+        <button class="primary" id="submit-btn">Lock in my stack</button>
+        <p class="hint" id="hint">One shot per day. Drag any row up or down.</p>
+      </div>
+    </section>
+
+    <section class="results" id="results" hidden>
+      <div class="score-display">
+        <div class="score-number" id="score-number">0<span class="score-total">/6</span></div>
+        <div class="score-grid" id="score-grid"></div>
+      </div>
+      <p class="score-blurb" id="score-blurb"></p>
+      <div class="results-actions">
+        <button class="primary" id="share-btn">Share my stack</button>
+        <button class="ghost" id="view-streak">See streak</button>
+      </div>
+      <div class="correct-reveal" id="correct-reveal" hidden>
+  <button class="ghost reveal-btn" id="reveal-btn">Show correct order</button>
+  <ol class="correct-list" id="correct-list" hidden></ol>
+</div>
+      <p class="countdown" id="countdown"></p>
+    </section>
+
+    <footer class="footnote">
+      <div class="footnote-row">
+        <a href="#" id="open-how">How to play</a>
+        <span class="dot">·</span>
+        <a href="#" id="open-about">About</a>
+        <span class="dot">·</span>
+        <a id="tipjar-link" href="#" target="_blank" rel="noopener">Tip the builder ☕</a>
+      </div>
+      <div class="brand">usehydrostack.com</div>
+    </footer>
+<div class="modal" id="modal-qr" hidden>
+  <div class="modal-inner" style="text-align:center">
+    <button class="close-btn" data-close>×</button>
+    <h2>Tip the builder ☕</h2>
+    <img src="qr.png" style="width:100%;max-width:240px;border-radius:12px;margin-top:8px">
+    <p style="margin-top:12px;font-size:13px;color:var(--ink-dim)">Scan to send a tip. Thank you!</p>
+  </div>
+</div>
+  </main>
+
+  <!-- ============ MODALS ============ -->
+
+  <div class="modal" id="modal-stats" hidden>
+    <div class="modal-inner">
+      <button class="close-btn" data-close aria-label="Close">×</button>
+      <h2>Your stack</h2>
+      <div class="stat-grid">
+        <div><div class="stat-num" id="stat-played">0</div><div class="stat-label">played</div></div>
+        <div><div class="stat-num" id="stat-streak">0</div><div class="stat-label">streak</div></div>
+        <div><div class="stat-num" id="stat-max">0</div><div class="stat-label">max streak</div></div>
+        <div><div class="stat-num" id="stat-avg">0.0</div><div class="stat-label">avg score</div></div>
+      </div>
+      <h3>Distribution</h3>
+      <div class="histogram" id="histogram"></div>
+      <p class="footnote-text">All progress lives in this browser. No accounts. No tracking.</p>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-how" hidden>
+    <div class="modal-inner">
+      <button class="close-btn" data-close aria-label="Close">×</button>
+      <h2>How to play</h2>
+      <ol class="how-list">
+        <li>You get six items each day.</li>
+        <li>Drag them into the correct order, top = most/highest/first.</li>
+        <li>Hit <strong>Lock in</strong>. You get one shot per day.</li>
+        <li>Each slot scores: 🟩 exact · 🟨 off by 1 · 🟥 off by 2+</li>
+        <li>Share your grid. Come back tomorrow.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-about" hidden>
+    <div class="modal-inner">
+      <button class="close-btn" data-close aria-label="Close">×</button>
+      <h2>About Stackle</h2>
+      <p>Stackle is a tiny daily ranking puzzle. New puzzle every midnight, your local time. No accounts, no logins, no tracking — just one quick stack a day.</p>
+      <p>If you enjoy it, you can <a id="tipjar-link-2" href="#" target="_blank" rel="noopener">drop a tip</a> or unlock the full puzzle archive.</p>
+      <p class="footnote-text">Built solo. Find us at usehydrostack.com.</p>
+    </div>
+  </div>
+
+  <div class="modal toast" id="toast" hidden>
+    <div class="toast-inner" id="toast-text">Copied to clipboard</div>
+  </div>
+
+  <!-- SortableJS (vendored locally, no CDN dependency) -->
+  <script src="sortable.min.js"></script>
+  <script src="streak.js"></script>
+  <script src="share.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

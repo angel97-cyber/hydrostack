@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroStack | Manager Workspace</title>
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <div id="sync-toast" class="toast hidden">
+        <div class="toast-header">🔒 Secure Local Sync</div>
+        <p>New field data is available. Refresh workspace to view latest reports.<br><br><span style="font-size: 0.75rem; color: var(--accent);">Developed by <a href="https://erangelmainali.com.np" target="_blank" style="color: var(--accent);">erangelmainali.com.np</a></span></p>
+        <button onclick="location.reload()" class="btn-primary" style="margin-top: 10px; padding: 8px;">Refresh Workspace</button>
+        <button onclick="document.getElementById('sync-toast').classList.add('hidden')" class="btn-secondary" style="margin-top: 10px; padding: 8px; border: none;">Dismiss</button>
+    </div>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-card">
+            <div class="logo">🏗️ HydroStack <span class="badge">Manager</span></div>
+            <h1 id="login-title">Initialize Workspace</h1>
+            <p id="login-desc">Connect your Google account to secure your field data.</p>
+            <button id="auth-btn" class="btn-google">Secure Login via Google</button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen layout-dashboard">
+        
+        <aside class="sidebar">
+            <div class="logo" style="margin-bottom: 40px;">🏗️ HydroStack</div>
+            <ul class="nav-menu">
+                <li class="active" onclick="switchTab('modules')">📁 Field Modules</li>
+                <li onclick="switchTab('forms')">📝 Form Builder</li>
+                <li onclick="switchTab('reports')" id="nav-reports">
+    📊 Live Reports <span id="notif-badge" class="badge-new" style="display:none;">NEW</span>
+</li>
+            </ul>
+            <div class="status-indicator" style="margin-top: auto;">
+                <span class="dot active"></span> DB Connected
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Manager Workspace</h2>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    
+                    <button id="new-module-btn" class="btn-primary">+ New Module</button>
+                </div>
+            </header>
+
+            <div id="tab-modules" class="tab-content active">
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Module ID</th><th>Name</th><th>Location</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="modules-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-forms" class="tab-content">
+                <div class="form-builder-card">
+                    <h3>Design Inspection Form</h3>
+                    
+                    <div class="input-group">
+                        <label>Target Module</label>
+                        <select id="form-target-module"><option>Select a module...</option></select>
+                    </div>
+
+                    <div id="form-fields-container"></div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn-secondary" onclick="addFormField()">+ Add Question</button>
+                        <button class="btn-primary" id="save-form-btn">Deploy to Inspectors</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-reports" class="tab-content">
+                <div class="input-group" style="max-width: 400px; margin-bottom: 20px;">
+                    <label>Select Module to View Logs</label>
+                    <select id="report-module-select" onchange="renderReportTable()"><option value="">Select...</option></select>
+                </div>
+
+                <div class="card" id="pdf-export-area">
+                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">Site Inspection Report</h3>
+                    <p><strong>Module ID:</strong> <span id="report-mod-name">None Selected</span></p>
+                    <p><strong>Date Generated:</strong> <span id="report-date"></span></p>
+                    <br>
+                    <table class="data-table" style="width: 100%;">
+                        <thead><tr><th>Date / Time</th><th>Inspector</th><th>Field Data</th></tr></thead>
+                        <tbody id="report-table-body">
+                            <tr><td colspan="3" style="text-align: center; padding: 30px;">Select a module to fetch live data.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn-primary" onclick="generatePDF()" style="margin-top: 20px;">Download PDF</button>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="modal-new-module" class="modal hidden">
+        <div class="modal-content">
+            <h3>Initialize New Module</h3>
+            <div class="input-group"><label>Module Name</label><input type="text" id="mod-name" placeholder="e.g., Daily Progress"></div>
+            <div class="input-group"><label>Location</label><input type="text" id="mod-loc"></div>
+            <div class="input-group"><label>Description</label><textarea id="mod-desc" rows="2"></textarea></div>
+            <div class="input-group"><label>Assigned Inspector(s)</label><input type="text" id="mod-workers" placeholder="e.g. John Doe, Sarah Smith"></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" id="submit-module-btn" style="flex: 1;">Create Module</button>
+                <button class="btn-secondary" onclick="closeModal('modal-new-module')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

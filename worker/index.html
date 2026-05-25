@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HydroStack | Field App</title>
+    <link rel="stylesheet" href="worker.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FFD600">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+    <header class="app-bar">
+        <div class="logo">🏗️ HydroStack <span class="badge">Field</span></div>
+        <div class="sync-status" id="network-status"><span class="dot green"></span> Online</div>
+    </header>
+
+    <main id="login-screen" class="screen active">
+        <div class="card">
+            <h2>Module Access</h2>
+            <p>Paste the credentials sent by your Site Manager.</p>
+            
+            <div class="input-group">
+                <label>Access Link (Smart Key)</label>
+                <input type="text" id="smart-key-input" placeholder="Paste the long key here...">
+            </div>
+            <div class="input-group">
+                <label>Passcode</label>
+                <input type="number" id="pin-input" placeholder="e.g. 1234">
+            </div>
+
+            <div id="identity-section" style="border-top: 1px dashed var(--border); padding-top: 15px; margin-top: 10px;">
+                <p style="font-size: 0.8rem; color: var(--accent); margin-bottom: 10px;">👤 Inspector Registration</p>
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="inspector-name" placeholder="John Doe">
+                </div>
+            </div>
+
+            <button id="auth-btn" class="btn-primary" style="margin-top: 15px;">Connect & Download</button>
+            <p id="login-error" class="error-text"></p>
+        </div>
+    </main>
+
+    <main id="homepage-screen" class="screen" style="padding: 20px; flex-direction: column;">
+        <header style="margin-bottom: 20px;">
+            <h2 style="color: var(--accent);">My Field Modules</h2>
+            <p style="color: var(--text-muted);">Cached for offline use</p>
+        </header>
+        
+        <div id="worker-module-list" style="display: flex; flex-direction: column; gap: 15px;">
+            </div>
+    </main>
+    <main id="app-screen" class="screen">
+        <div class="card">
+            <h2 style="color: var(--accent); margin-bottom: 5px;" id="module-title-display">Loading Module...</h2>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Inspector: <span id="display-inspector-name"></span></p>
+            
+            <div id="dynamic-form-container"></div>
+            <button id="submit-log-btn" class="btn-primary btn-large" style="display: none;">Save & Sync Log</button>
+        </div>
+    </main>
+
+    <main id="success-screen" class="screen" style="text-align: center; padding-top: 50px;">
+        <h1 style="font-size: 3rem; margin-bottom: 10px;">✅</h1>
+        <h2 style="color: var(--success); margin-bottom: 15px;">Log Saved Securely</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Your field data has been added to the queue.</p>
+        
+        <div class="pending-queue" style="text-align: left; margin-bottom: 30px;">
+            <p>Logs pending sync: <strong id="pending-count">0</strong></p>
+            <button id="force-sync-btn" class="btn-secondary">Force Sync Now</button>
+        </div>
+
+        <button onclick="document.getElementById('success-screen').classList.remove('active'); document.getElementById('homepage-screen').classList.add('active');" class="btn-outline" style="width: 100%; padding: 15px; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; font-weight: bold; cursor: pointer;">
+            🏠 Back to Homepage
+        </button>
+    </main>
+
+    <script src="worker.js"></script>
+</body>
+</html>
