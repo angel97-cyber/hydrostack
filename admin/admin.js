@@ -1,50 +1,22 @@
 // --- CONFIGURATION ---
-const CLIENT_ID = '683688288693-4lbcah6gptrv86aes4f9v1cd8n0g5nu7.apps.googleusercontent.com'; // <--- PASTE IT HERE
-const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets';
-
-let tokenClient;
-let accessToken = null;
+let masterEngineUrl = localStorage.getItem('hs_engine_url') || null;
 let masterSheetId = localStorage.getItem('hydrostack_master_db') || null;
 let allSubmissions = []; 
 
-function checkCachedToken() {
-    const token = localStorage.getItem('hs_access_token');
-    const expiry = localStorage.getItem('hs_token_expiry');
-    if (token && expiry && new Date().getTime() < expiry) {
-        accessToken = token;
-        return true;
-    }
-    return false;
-}
-
-function saveTokenToCache(tokenResponse) {
-    accessToken = tokenResponse.access_token;
-    const expiryTime = new Date().getTime() + (tokenResponse.expires_in * 1000) - 60000;
-    localStorage.setItem('hs_access_token', accessToken);
-    localStorage.setItem('hs_token_expiry', expiryTime);
-}
-
 window.onload = async function () {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: async (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                saveTokenToCache(tokenResponse);
-                launchDashboard();
-            }
-        },
-    });
-
-    if (checkCachedToken()) {
-        launchDashboard();
-    } else if (masterSheetId) {
-        document.getElementById('login-title').innerText = "Session Expired";
-        document.getElementById('login-desc').innerText = "For security, please re-authenticate.";
-    }
+    if (masterEngineUrl && masterSheetId) launchDashboard();
 };
 
-document.getElementById('auth-btn').addEventListener('click', () => tokenClient.requestAccessToken());
+document.getElementById('auth-btn').addEventListener('click', async () => {
+    const urlInput = document.getElementById('engine-url-input').value.trim();
+    if (!urlInput.startsWith('https://script.google.com/')) return alert("Invalid Engine URL. Please follow the deployment guide.");
+    
+    masterEngineUrl = urlInput;
+    localStorage.setItem('hs_engine_url', masterEngineUrl);
+    
+    document.getElementById('auth-btn').innerText = "Connecting & Building DB...";
+    await launchDashboard();
+});
 
 async function launchDashboard() {
     document.getElementById('login-screen').classList.remove('active');
@@ -53,42 +25,34 @@ async function launchDashboard() {
     setInterval(showRefreshToast, 5 * 60 * 1000); 
 }
 
+// THE UNIFIED APPS SCRIPT RELAY
+async function gasRequest(payload) {
+    // Note: We intentionally do NOT use 'Content-Type: application/json' to bypass CORS preflight checks.
+    const res = await fetch(masterEngineUrl, { method: 'POST', body: JSON.stringify(payload) });
+    return await res.json();
+}
+
 async function initMasterWorkspace() {
     if (masterSheetId) { loadDashboardData(); return; }
     
-    const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            properties: { title: "_HydroStack_Workspace_DB" },
-            sheets: [{ properties: { title: "Modules" } }, { properties: { title: "Users" } }, { properties: { title: "Forms" } }, { properties: { title: "Submissions" } }]
-        })
-    });
-    
-    const sheetData = await createRes.json();
-    masterSheetId = sheetData.spreadsheetId;
-    localStorage.setItem('hydrostack_master_db', masterSheetId);
-    
-    await fetch(`https://www.googleapis.com/drive/v3/files/${masterSheetId}/permissions`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'writer', type: 'anyone' })
-    });
-    loadDashboardData();
+    const res = await gasRequest({ action: 'init' });
+    if (res.success) {
+        masterSheetId = res.spreadsheetId;
+        localStorage.setItem('hydrostack_master_db', masterSheetId);
+        loadDashboardData();
+    } else {
+        alert("Failed to initialize database. Check your Engine URL.");
+    }
 }
 
 async function appendRowToSheet(tabName, valuesArray) {
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${masterSheetId}/values/${tabName}!A:Z:append?valueInputOption=USER_ENTERED`, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values: [valuesArray] })
-    });
+    await gasRequest({ action: 'append', sheetId: masterSheetId, tabName: tabName, values: valuesArray });
 }
 
 async function getRowsFromSheet(tabName) {
     try {
-        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${masterSheetId}/values/${tabName}!A:Z`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-        const data = await res.json();
-        return data.values || [];
+        const res = await gasRequest({ action: 'get', sheetId: masterSheetId, tabName: tabName });
+        return res.values || [];
     } catch (e) { return []; }
 }
 
@@ -189,7 +153,8 @@ document.getElementById('submit-module-btn').addEventListener('click', async () 
 
 function copySmartKey(moduleId, pin, name, loc, desc) {
     // We now pack the extra details into the payload for the worker to see
-    const accessData = { db: masterSheetId, proj: moduleId, pin: pin, name: name, loc: loc, desc: desc };
+    // Inside copySmartKey:
+const accessData = { db: masterSheetId, proj: moduleId, pin: pin, name: name, loc: loc, desc: desc, engine: masterEngineUrl }; // <-- Added engine!
     const smartKey = btoa(JSON.stringify(accessData));
     
     // Forces the production URL for the Magic Link even when testing locally

@@ -1,13 +1,8 @@
 // --- CONFIGURATION ---
-const CLIENT_ID = '683688288693-4lbcah6gptrv86aes4f9v1cd8n0g5nu7.apps.googleusercontent.com'; // <--- PASTE IT HERE
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-// Paste the Web App URL you copied from Step 1 here!
-const GAS_RELAY_URL = 'https://script.google.com/macros/s/AKfycbzMGt3vgizLziFvNspsPZfqZGBtsGVHnbF-JF8lmlsRAlchOu_Rllpi69DSvgWvhik8Fg/exec';
-
-let tokenClient;
-let accessToken = null;
+// No Google Client IDs or Scopes needed anymore!
 let moduleData = null; 
 let activeFormLayout = []; 
+
 // URL INTERCEPTOR (MAGIC LINK AUTO-LOGIN)
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,36 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 });
-window.onload = function () {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID, scope: SCOPES,
-        callback: async (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                accessToken = tokenResponse.access_token;
-                document.getElementById('login-screen').classList.remove('active');
-                
-                // ROUTE TO HOMEPAGE INSTEAD
-                document.getElementById('homepage-screen').classList.add('active'); 
-                renderWorkerHomepage(); // Call the render function
-                
-                syncPendingLogs(); 
-            }
-        } // <--- THIS WAS THE MISSING BRACE!
-    });
 
-    // Check if Inspector has already registered their name
+window.onload = function () {
     const savedName = localStorage.getItem('hs_inspector_name');
     if (savedName) {
         document.getElementById('inspector-name').value = savedName;
         document.getElementById('display-inspector-name').innerText = savedName;
-        document.getElementById('identity-section').style.display = 'none'; // Hide if already registered
+        document.getElementById('identity-section').style.display = 'none'; 
     }
 
     window.addEventListener('online', updateNetworkStatus);
     window.addEventListener('offline', updateNetworkStatus);
     updateNetworkStatus();
     updateQueueUI();
-    setInterval(syncPendingLogs, 5 * 60 * 1000);
 };
 
 document.getElementById('auth-btn').addEventListener('click', () => {
@@ -79,7 +57,11 @@ document.getElementById('auth-btn').addEventListener('click', () => {
         }
 
         moduleData = decoded;
-        tokenClient.requestAccessToken();
+        // Replaces tokenClient.requestAccessToken()
+        document.getElementById('login-screen').classList.remove('active');
+        document.getElementById('homepage-screen').classList.add('active'); 
+        renderWorkerHomepage();
+        syncPendingLogs();
 
     } catch (e) {
         errorMsg.innerText = "Invalid Access Link."; errorMsg.style.display = 'block';
@@ -96,7 +78,11 @@ async function fetchModuleForm() {
 
     try {
         document.getElementById('module-title-display').innerText = `Module: ${moduleData.proj}`;
-        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${moduleData.db}/values/Forms!A:C`, { headers: { 'Authorization': `Bearer ${accessToken}` }});
+        // INSIDE fetchModuleForm() ... Replace the googleapis fetch with this:
+        const res = await fetch(moduleData.engine, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'get', sheetId: moduleData.db, tabName: 'Forms' })
+        });
         const data = await res.json();
         const rows = data.values || [];
         
@@ -243,7 +229,7 @@ document.getElementById('submit-log-btn').addEventListener('click', async () => 
 });
 
 async function syncPendingLogs() {
-    if (!navigator.onLine || !accessToken || !moduleData) return;
+    if (!navigator.onLine || !moduleData) return;
     let queue = JSON.parse(localStorage.getItem('hydrostack_queue')) || [];
     if (queue.length === 0) return;
 
@@ -251,7 +237,7 @@ async function syncPendingLogs() {
     btn.innerText = "Syncing to Cloud...";
 
     try {
-        // PRE-PROCESSING: Find any [PENDING_UPLOAD] tags and shoot them to Google Drive via Apps Script
+        // 1. Process File Uploads via Apps Script
         for (let j = 0; j < queue.length; j++) {
             if (queue[j].dataString.includes('[PENDING_UPLOAD]')) {
                 let parts = queue[j].dataString.split('  |  ');
@@ -264,10 +250,9 @@ async function syncPendingLogs() {
                         for (let rawStr of filesRaw) {
                             if (rawStr.startsWith('[PENDING_UPLOAD]')) {
                                 let fileData = rawStr.replace('[PENDING_UPLOAD]', '').split('|');
-                                // Post to Google Apps Script
-                                let res = await fetch(GAS_RELAY_URL, {
+                                let res = await fetch(moduleData.engine, { // Using the Engine URL
                                     method: 'POST',
-                                    body: JSON.stringify({ filename: fileData[0], mimeType: fileData[1], base64: fileData[2].split(',')[1] })
+                                    body: JSON.stringify({ action: 'upload', filename: fileData[0], mimeType: fileData[1], base64: fileData[2].split(',')[1] })
                                 });
                                 let data = await res.json();
                                 cleanUrls.push(data.url || "Upload Failed");
@@ -282,14 +267,17 @@ async function syncPendingLogs() {
             }
         }
 
-        // Now that files are real Drive URLs, submit to Google Sheets
+        // 2. Process Data Rows via Apps Script
         const values = queue.map(log => [log.projectId, log.timestamp, log.workerEmail, log.dataString]);
-        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${moduleData.db}/values/Submissions!A:D:append?valueInputOption=USER_ENTERED`, {
-            method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ values: values })
+        
+        const response = await fetch(moduleData.engine, {
+            method: 'POST', 
+            body: JSON.stringify({ action: 'append', sheetId: moduleData.db, tabName: 'Submissions', values: values })
         });
+        
+        const resData = await response.json();
 
-        if (response.ok) {
+        if (resData.success) {
             localStorage.setItem('hydrostack_queue', JSON.stringify([]));
             btn.innerText = "Sync Complete ✅";
             setTimeout(() => { btn.innerText = "Force Sync Now"; }, 2000);

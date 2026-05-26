@@ -1,5 +1,5 @@
 // Change v1 to v2 (or v3, etc., every time you push a massive code update)
-const CACHE_NAME = 'hydrostack-v5'; 
+const CACHE_NAME = 'hydrostack-v6'; 
 
 const ASSETS_TO_CACHE = [
     './index.html',

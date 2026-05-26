@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HydroStack | Manager Workspace</title>
     <link rel="stylesheet" href="admin.css">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -20,9 +19,13 @@
     <div id="login-screen" class="screen active">
         <div class="login-card">
             <div class="logo">🏗️ HydroStack <span class="badge">Manager</span></div>
-            <h1 id="login-title">Initialize Workspace</h1>
-            <p id="login-desc">Connect your Google account to secure your field data.</p>
-            <button id="auth-btn" class="btn-google">Secure Login via Google</button>
+            <h1 id="login-title">Connect Engine</h1>
+            <p id="login-desc">https://script.google.com/macros/s/AKfycbwNKGk_w-XRvDFSCyiQEH4j690n4klAmxmJ1xsGqDekpisFGLMfr8zL-GLA3zGm1cGa/exec</p>
+            <div class="input-group">
+                <input type="text" id="engine-url-input" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 15px;">
+            </div>
+            <button id="auth-btn" class="btn-primary" style="width: 100%;">Connect Workspace</button>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px;"><a href="#" style="color: var(--text-muted); text-decoration: underline;">How to deploy my Engine?</a></p>
         </div>
     </div>
 
