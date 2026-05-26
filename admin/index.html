@@ -25,7 +25,7 @@
                 <input type="text" id="engine-url-input" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 15px;">
             </div>
             <button id="auth-btn" class="btn-primary" style="width: 100%;">Connect Workspace</button>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px;"><a href="#" style="color: var(--text-muted); text-decoration: underline;">How to deploy my Engine?</a></p>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px;"><a href="#" onclick="document.getElementById('modal-engine-guide').classList.remove('hidden')" style="color: var(--text-muted); text-decoration: underline;">How to deploy my Engine?</a></p>
         </div>
     </div>
 
@@ -120,7 +120,64 @@
             </div>
         </div>
     </div>
+<div id="modal-engine-guide" class="modal hidden">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+            <h3 style="color: var(--accent); margin-bottom: 10px;">⚙️ Engine Deployment Guide</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">HydroStack is a zero-backend platform. To guarantee 100% data privacy, your database lives entirely inside your own Google Drive. Follow these 5 steps to initialize your Engine (Takes 2 mins).</p>
+            
+            <ol style="margin-left: 20px; line-height: 1.6; font-size: 0.9rem; color: var(--text-main); margin-bottom: 20px;">
+                <li>Go to <a href="https://script.google.com/" target="_blank" style="color: var(--google-blue);">script.google.com</a> and click <strong>New Project</strong>.</li>
+                <li>Delete the default code and <strong>paste the code below</strong>.</li>
+                <li>Click <strong>Deploy > New Deployment</strong>.</li>
+                <li>Select Type: <strong>Web App</strong>. Set "Execute as" to <strong>Me</strong>. Set "Who has access" to <strong>Anyone</strong>.</li>
+                <li>Click Deploy, Authorize access, and <strong>copy the Web App URL</strong>. Paste it into the HydroStack login screen!</li>
+            </ol>
 
+            <div style="background: var(--bg-dark); padding: 10px; border: 1px solid var(--border); border-radius: 4px; position: relative; margin-bottom: 20px;">
+                <button onclick="copyEngineCode()" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; font-size: 0.7rem; background: var(--surface); color: var(--text-main); border: 1px solid var(--border); cursor: pointer;">Copy Code</button>
+                <pre id="engine-script-code" style="font-family: monospace; font-size: 0.75rem; color: var(--success); overflow-x: auto; white-space: pre-wrap;">
+function doPost(e) {
+  try {
+    var params = JSON.parse(e.postData.contents);
+    var action = params.action;
+
+    if (action === 'init') {
+      var ss = SpreadsheetApp.create("_HydroStack_Workspace_DB");
+      ss.insertSheet("Modules"); ss.insertSheet("Users"); ss.insertSheet("Forms"); ss.insertSheet("Submissions");
+      var sheet1 = ss.getSheetByName('Sheet1'); if (sheet1) ss.deleteSheet(sheet1);
+      return ContentService.createTextOutput(JSON.stringify({ success: true, spreadsheetId: ss.getId() })).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action === 'append') {
+      var ss = SpreadsheetApp.openById(params.sheetId);
+      var sheet = ss.getSheetByName(params.tabName);
+      if (Array.isArray(params.values[0])) {
+         var startRow = sheet.getLastRow() + 1; 
+         if(params.values.length > 0) sheet.getRange(startRow, 1, params.values.length, params.values[0].length).setValues(params.values);
+      } else { sheet.appendRow(params.values); }
+      return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action === 'get') {
+      var ss = SpreadsheetApp.openById(params.sheetId);
+      var sheet = ss.getSheetByName(params.tabName);
+      var data = sheet.getDataRange().getValues();
+      return ContentService.createTextOutput(JSON.stringify({ success: true, values: data })).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (action === 'upload') {
+      var data = Utilities.base64Decode(params.base64);
+      var blob = Utilities.newBlob(data, params.mimeType, params.filename);
+      var file = DriveApp.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return ContentService.createTextOutput(JSON.stringify({ success: true, url: file.getUrl() })).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+                </pre>
+            </div>
+            <button class="btn-secondary" onclick="closeModal('modal-engine-guide')" style="width: 100%;">Close Guide</button>
+        </div>
+    </div>
     <script src="admin.js"></script>
 </body>
 </html>

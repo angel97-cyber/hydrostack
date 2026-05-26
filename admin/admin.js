@@ -314,6 +314,11 @@ function switchTab(tabId) {
 
 document.getElementById('new-module-btn').addEventListener('click', () => document.getElementById('modal-new-module').classList.remove('hidden'));
 function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+function copyEngineCode() {
+    const code = document.getElementById('engine-script-code').innerText;
+    navigator.clipboard.writeText(code);
+    alert("✅ Engine Script Copied! Paste this into Google Apps Script.");
+}
 function showRefreshToast() { document.getElementById('sync-toast').classList.remove('hidden'); }
 function generatePDF() {
     const element = document.getElementById('pdf-export-area');
