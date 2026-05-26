@@ -1,53 +1,952 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* ============================================================
+   HYDROSTACK FIELD — DESIGN TOKENS
+   Tactical industrial. Glove-safe. Outdoor-readable.
+   ============================================================ */
 :root {
-    --bg-dark: #0A0A0A;
-    --surface: #1A1A1A;
-    --border: #333333;
-    --text-main: #F5F5F5;
-    --text-muted: #A0A0A0;
-    --accent: #FFD600;
-    --error: #FF3B30;
-    --success: #30D158;
+    /* Palette */
+    --bg-dark:           #070A0D;
+    --surface:           #0F1318;
+    --surface-2:         #171C22;
+    --surface-3:         #1E2530;
+    --border:            #252C36;
+    --border-mid:        #313B48;
+    --border-light:      #3D4A5A;
+    --text-main:         #E8ECF0;
+    --text-muted:        #7A8895;
+    --text-dim:          #445060;
+
+    /* Accent — safety yellow */
+    --accent:            #FFD600;
+    --accent-hover:      #EBBF00;
+    --accent-pressed:    #D4A900;
+    --accent-glow:       rgba(255, 214, 0, 0.10);
+    --accent-glow-strong:rgba(255, 214, 0, 0.20);
+
+    /* Semantic */
+    --error:             #FF3B30;
+    --error-bg:          rgba(255, 59, 48, 0.08);
+    --error-border:      rgba(255, 59, 48, 0.25);
+    --success:           #2ADB60;
+    --success-bg:        rgba(42, 219, 96, 0.08);
+    --success-border:    rgba(42, 219, 96, 0.30);
+    --warning:           #FF9500;
+
+    /* Typography */
+    --font-display:      'Rajdhani', 'Arial Narrow', Arial, sans-serif;
+    --font-body:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* Touch geometry — glove-grade minimums */
+    --input-height:      58px;
+    --btn-lg:            64px;
+    --btn-md:            52px;
+    --btn-sm:            44px;
+    --check-size:        28px;
+
+    /* Radii */
+    --r-sm:              4px;
+    --r-md:              8px;
+    --r-lg:              12px;
+
+    /* Layout */
+    --bar-top:           58px;
+    --bar-bottom:        62px;
+    --safe-bottom:       env(safe-area-inset-bottom, 0px);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-top: 60px; }
-
-/* Status Bar */
-.app-bar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--surface); border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 100; }
-.logo { font-weight: 900; font-size: 1.1rem; }
-.badge { background: var(--accent); color: #000; font-size: 0.6rem; padding: 2px 6px; text-transform: uppercase; vertical-align: top; }
-.sync-status { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: bold; }
-.dot { width: 10px; height: 10px; border-radius: 50%; }
-.dot.green { background: var(--success); box-shadow: 0 0 8px var(--success); }
-.dot.red { background: var(--error); box-shadow: 0 0 8px var(--error); }
-
-/* Screens */
-.screen { display: none; padding: 20px; }
-.screen.active { display: block; }
-
-/* Cards & Inputs */
-.card { background: var(--surface); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
-.card h2 { margin-bottom: 10px; font-size: 1.4rem; }
-.card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
-
-.input-group { margin-bottom: 20px; }
-.input-group label { display: block; font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: bold; }
-.required-star { color: var(--error); margin-left: 3px; }
-
-input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
-    width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); padding: 14px; font-size: 1rem; border-radius: 4px;
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
-input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
 
-/* Custom Checkbox/Radio Styling */
-.check-row { display: flex; align-items: center; gap: 10px; margin-top: 5px; background: var(--bg-dark); padding: 12px; border: 1px solid var(--border); border-radius: 4px; }
-.check-row input[type="checkbox"], .check-row input[type="radio"] { width: 20px; height: 20px; accent-color: var(--accent); }
+html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    scroll-behavior: smooth;
+}
 
-/* Buttons */
-.btn-primary { width: 100%; background: var(--accent); color: #000; border: none; padding: 14px; font-size: 1rem; font-weight: bold; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: 0.2s; }
-.btn-primary:active { background: #E6C200; transform: scale(0.98); }
-.btn-large { padding: 18px; font-size: 1.1rem; margin-top: 10px; }
-.btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 8px 12px; font-size: 0.8rem; cursor: pointer; border-radius: 4px; }
+body {
+    background:  var(--bg-dark);
+    color:       var(--text-main);
+    font-family: var(--font-body);
+    font-size:   1rem;
+    line-height: 1.5;
+    min-height:  100vh;
+    min-height:  -webkit-fill-available;
+    padding-top: var(--bar-top);
+    padding-bottom: calc(var(--bar-bottom) + var(--safe-bottom));
+    /* Subtle crosshatch texture for sunlight readability */
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 39px,
+            rgba(255,255,255,0.012) 39px,
+            rgba(255,255,255,0.012) 40px
+        );
+}
 
-.error-text { color: var(--error); font-size: 0.85rem; margin-top: 10px; display: none; text-align: center; }
-.pending-queue { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 8px; border: 1px dashed var(--border); }
+/* ============================================================
+   TOP APP BAR
+   ============================================================ */
+.app-bar {
+    position:   fixed;
+    top:        0;
+    left:       0;
+    right:      0;
+    height:     var(--bar-top);
+    background: var(--surface);
+    border-bottom: 2.5px solid var(--accent);
+    display:    flex;
+    align-items: center;
+    justify-content: space-between;
+    padding:    0 16px;
+    z-index:    300;
+    /* Slight blur for depth when content scrolls under */
+    backdrop-filter: blur(0px);
+}
+
+.logo {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size:   1.25rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.logo-accent { color: var(--accent); }
+
+.badge {
+    background:    var(--accent);
+    color:         #000;
+    font-family:   var(--font-display);
+    font-size:     0.55rem;
+    font-weight:   700;
+    letter-spacing: 0.14em;
+    padding:       3px 7px 2px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    line-height:   1;
+    vertical-align: middle;
+}
+
+/* Network status pill in header */
+.sync-status {
+    display:     flex;
+    align-items: center;
+    gap:         7px;
+    font-family: var(--font-display);
+    font-size:   0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color:       var(--text-muted);
+    background:  var(--surface-2);
+    border:      1px solid var(--border-mid);
+    padding:     6px 12px;
+    border-radius: 100px;
+    user-select: none;
+}
+
+.dot {
+    width:        9px;
+    height:       9px;
+    border-radius: 50%;
+    flex-shrink:  0;
+    display:      inline-block;
+}
+
+.dot.green {
+    background:  var(--success);
+    box-shadow:  0 0 0 3px var(--success-bg), 0 0 10px rgba(42, 219, 96, 0.6);
+    animation:   dot-breathe 2.8s ease-in-out infinite;
+}
+
+.dot.red {
+    background: var(--error);
+    box-shadow: 0 0 0 3px var(--error-bg), 0 0 8px rgba(255, 59, 48, 0.5);
+    animation:  dot-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes dot-breathe {
+    0%, 100% { box-shadow: 0 0 0 2px var(--success-bg),  0 0  7px rgba(42,219,96,0.5); }
+    50%       { box-shadow: 0 0 0 5px rgba(42,219,96,0.05), 0 0 16px rgba(42,219,96,0.7); }
+}
+
+@keyframes dot-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+
+/* ============================================================
+   BOTTOM STATUS STRIP  — always-visible field dashboard
+   ============================================================ */
+.status-strip {
+    position:   fixed;
+    bottom:     0;
+    left:       0;
+    right:      0;
+    height:     calc(var(--bar-bottom) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border-mid);
+    display:    flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left:  12px;
+    padding-right: 12px;
+    gap:        10px;
+    z-index:    300;
+}
+
+/* Left & right metric tiles */
+.strip-tile {
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    justify-content: center;
+    gap:            2px;
+    min-width:      52px;
+}
+
+.strip-tile-label {
+    font-family:    var(--font-display);
+    font-size:      0.5rem;
+    font-weight:    700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color:          var(--text-dim);
+    white-space:    nowrap;
+}
+
+.strip-tile-value {
+    font-family: var(--font-display);
+    font-size:   1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    color:       var(--text-muted);
+}
+
+/* Queue count — accent when >0 */
+#pending-count {
+    color: var(--accent);
+    transition: color 0.3s;
+}
+
+#pending-count.empty {
+    color: var(--text-dim);
+}
+
+/* Centre sync button */
+#force-sync-btn {
+    flex:        1;
+    background:  var(--surface-2);
+    border:      1.5px solid var(--border-mid);
+    color:       var(--text-muted);
+    height:      42px;
+    padding:     0 16px;
+    font-family: var(--font-display);
+    font-size:   0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor:      pointer;
+    border-radius: var(--r-md);
+    transition:  all 0.15s;
+    white-space: nowrap;
+    display:     flex;
+    align-items: center;
+    justify-content: center;
+    gap:         6px;
+}
+
+#force-sync-btn:active {
+    background:    var(--accent-glow-strong);
+    border-color:  var(--accent);
+    color:         var(--accent);
+    transform:     scale(0.96);
+}
+
+/* Syncing animation class (toggled by JS label changes) */
+#force-sync-btn[disabled] {
+    opacity: 0.55;
+    cursor:  not-allowed;
+    transform: none;
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+.screen {
+    display: none;
+    padding: 16px;
+    padding-bottom: 28px;
+    animation: screen-in 0.2s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes screen-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* Success screen needs flex */
+#success-screen.active {
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    padding-top:    40px;
+    text-align:     center;
+}
+
+/* Homepage needs column flex */
+#homepage-screen.active {
+    display:        flex;
+    flex-direction: column;
+}
+
+/* ============================================================
+   SCREEN HEADERS
+   ============================================================ */
+.screen-header {
+    padding: 20px 4px 18px;
+}
+
+.screen-title {
+    font-family:    var(--font-display);
+    font-size:      1.65rem;
+    font-weight:    700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color:          var(--text-main);
+    line-height:    1;
+    margin-bottom:  6px;
+}
+
+.screen-subtitle {
+    font-size:   0.84rem;
+    color:       var(--text-muted);
+    line-height: 1.45;
+}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+    background:    var(--surface);
+    border:        1px solid var(--border-mid);
+    border-radius: var(--r-lg);
+    padding:       22px 18px;
+    margin-bottom: 16px;
+}
+
+/* Accent left-border on cards for visual scan */
+.card-module {
+    background:    var(--surface);
+    border:        1px solid var(--border-mid);
+    border-left:   3px solid var(--accent);
+    border-radius: var(--r-lg);
+    padding:       20px 18px;
+    cursor:        pointer;
+    display:       flex;
+    justify-content: space-between;
+    align-items:   center;
+    position:      relative;
+    overflow:      hidden;
+    transition:    border-color 0.15s, background 0.15s;
+    min-height:    72px;
+}
+
+.card-module:active {
+    background:    var(--surface-2);
+    border-color:  var(--border-light);
+    transform:     scale(0.99);
+}
+
+/* ============================================================
+   FORM — INPUT GROUPS
+   ============================================================ */
+.input-group {
+    margin-bottom: 18px;
+    position:      relative;
+}
+
+.input-group label {
+    display:        flex;
+    align-items:    center;
+    gap:            8px;
+    font-family:    var(--font-display);
+    font-size:      0.75rem;
+    font-weight:    700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color:          var(--text-muted);
+    margin-bottom:  10px;
+    user-select:    none;
+}
+
+.label-hint {
+    font-family:    var(--font-body);
+    font-size:      0.68rem;
+    font-weight:    400;
+    text-transform: none;
+    letter-spacing: 0;
+    color:          var(--text-dim);
+    background:     var(--surface-2);
+    padding:        2px 8px;
+    border-radius:  100px;
+    border:         1px solid var(--border);
+}
+
+.required-star {
+    color:       var(--error);
+    font-size:   1rem;
+    line-height: 1;
+}
+
+/* ============================================================
+   TEXT / NUMBER / DATE INPUTS
+   ============================================================ */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    width:           100%;
+    background:      var(--bg-dark);
+    border:          2px solid var(--border-mid);
+    color:           var(--text-main);
+    padding:         14px 17px;
+    font-size:       1.05rem;
+    font-family:     var(--font-body);
+    border-radius:   var(--r-md);
+    min-height:      var(--input-height);
+    transition:      border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    -webkit-appearance: none;
+    appearance:      none;
+    line-height:     1.4;
+    caret-color:     var(--accent);
+    outline:         none;
+    /* Force readable text size — prevents iOS 16px auto-zoom */
+    font-size: max(1rem, 16px);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent);
+    background:   rgba(255, 214, 0, 0.03);
+    box-shadow:   0 0 0 4px var(--accent-glow), inset 0 1px 0 rgba(255,214,0,0.08);
+}
+
+/* Success state — visible once user types */
+input:not(:placeholder-shown):not(:focus),
+textarea:not(:placeholder-shown):not(:focus) {
+    border-color: var(--border-light);
+    border-left-color: var(--success);
+    border-left-width: 3px;
+}
+
+textarea {
+    min-height:  110px;
+    resize:      vertical;
+    line-height: 1.6;
+    padding-top: 14px;
+}
+
+/* Date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter:  invert(0.55) sepia(1) hue-rotate(4deg) saturate(8);
+    cursor:  pointer;
+    padding: 6px;
+    opacity: 0.7;
+}
+
+/* ============================================================
+   SELECT — CUSTOM CHEVRON
+   ============================================================ */
+select {
+    padding-right: 50px;
+    cursor:        pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3 5.5L8 11 13 5.5' stroke='%237A8895' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:   no-repeat;
+    background-position: right 16px center;
+    background-size:     18px;
+}
+
+select:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3 5.5L8 11 13 5.5' stroke='%23FFD600' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+select option {
+    background: var(--surface-2);
+    color:      var(--text-main);
+    padding:    12px;
+}
+
+/* ============================================================
+   FILE UPLOAD
+   ============================================================ */
+input[type="file"] {
+    background:   var(--bg-dark);
+    border:       2px dashed var(--border-light);
+    padding:      22px 18px;
+    min-height:   92px;
+    cursor:       pointer;
+    color:        var(--text-muted);
+    font-family:  var(--font-body);
+    font-size:    0.9rem;
+    display:      flex;
+    align-items:  center;
+    border-radius: var(--r-md);
+    transition:   border-color 0.15s;
+}
+
+input[type="file"]:focus,
+input[type="file"]:active {
+    border-color: var(--accent);
+    outline:      none;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    background:   var(--surface-3);
+    border:       1.5px solid var(--border-light);
+    color:        var(--accent);
+    padding:      10px 16px;
+    border-radius: var(--r-sm);
+    font-family:  var(--font-display);
+    font-weight:  700;
+    font-size:    0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    cursor:       pointer;
+    margin-right: 14px;
+    transition:   all 0.15s;
+}
+
+input[type="file"]::-webkit-file-upload-button:active {
+    background: var(--accent);
+    color:      #000;
+}
+
+/* ============================================================
+   CHECKBOXES & RADIOS — 60px hit area, glove-grade
+   ============================================================ */
+.check-row {
+    display:       flex;
+    align-items:   center;
+    gap:           16px;
+    margin-top:    8px;
+    background:    var(--bg-dark);
+    padding:       16px 18px;
+    border:        2px solid var(--border-mid);
+    border-radius: var(--r-md);
+    min-height:    60px;
+    cursor:        pointer;
+    transition:    border-color 0.12s, background 0.12s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select:   none;
+    position:      relative;
+}
+
+/* Checked state via :has() — supported iOS 15.4+, Chrome 105+, Firefox 121+ */
+.check-row:has(input:checked) {
+    border-color: var(--accent);
+    background:   var(--accent-glow);
+}
+
+.check-row:has(input:checked) label {
+    color: var(--text-main) !important;
+    font-weight: 500;
+}
+
+.check-row:active {
+    transform:  scale(0.99);
+    background: var(--surface-2);
+}
+
+.check-row input[type="checkbox"],
+.check-row input[type="radio"] {
+    width:      var(--check-size);
+    height:     var(--check-size);
+    min-width:  var(--check-size);
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    cursor:     pointer;
+}
+
+/* Override the label styles injected via JS innerHTML */
+.check-row label {
+    margin:         0 !important;
+    text-transform: none !important;
+    color:          var(--text-muted) !important;
+    font-size:      1rem !important;
+    font-family:    var(--font-body) !important;
+    font-weight:    400 !important;
+    letter-spacing: 0 !important;
+    cursor:         pointer;
+    line-height:    1.35;
+    flex:           1;
+    padding-top:    0 !important;
+    margin-bottom:  0 !important;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
+    width:          100%;
+    background:     var(--accent);
+    color:          #000;
+    border:         none;
+    height:         var(--btn-lg);
+    padding:        0 24px;
+    font-family:    var(--font-display);
+    font-size:      1.05rem;
+    font-weight:    700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor:         pointer;
+    border-radius:  var(--r-md);
+    display:        flex;
+    align-items:    center;
+    justify-content: center;
+    gap:            10px;
+    transition:     background 0.1s, transform 0.08s;
+    -webkit-tap-highlight-color: transparent;
+    user-select:    none;
+    position:       relative;
+    overflow:       hidden;
+}
+
+.btn-primary::after {
+    content:  '';
+    position: absolute;
+    inset:    0;
+    background: rgba(0,0,0,0);
+    transition: background 0.1s;
+}
+
+.btn-primary:active {
+    background:  var(--accent-pressed);
+    transform:   scale(0.97);
+}
+
+.btn-primary:active::after {
+    background: rgba(0,0,0,0.08);
+}
+
+.btn-primary:disabled {
+    opacity:   0.45;
+    cursor:    not-allowed;
+    transform: none;
+}
+
+.btn-large {
+    height: var(--btn-lg);
+}
+
+/* Sticky submit floats above the bottom strip */
+#submit-log-btn {
+    position:     sticky;
+    bottom:       80px;
+    margin-top:   24px;
+    box-shadow:   0 -8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,214,0,0.2);
+    z-index:      10;
+}
+
+.btn-secondary {
+    background:     transparent;
+    color:          var(--text-muted);
+    border:         1.5px solid var(--border-mid);
+    height:         var(--btn-sm);
+    padding:        0 18px;
+    font-family:    var(--font-display);
+    font-size:      0.78rem;
+    font-weight:    700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor:         pointer;
+    border-radius:  var(--r-md);
+    transition:     all 0.15s;
+    display:        inline-flex;
+    align-items:    center;
+    justify-content: center;
+    gap:            6px;
+}
+
+.btn-secondary:active {
+    background:   var(--surface-2);
+    border-color: var(--border-light);
+}
+
+.btn-outline {
+    width:          100%;
+    background:     transparent;
+    border:         2px solid var(--accent);
+    color:          var(--accent);
+    height:         var(--btn-lg);
+    padding:        0 24px;
+    font-family:    var(--font-display);
+    font-size:      1rem;
+    font-weight:    700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    cursor:         pointer;
+    border-radius:  var(--r-md);
+    display:        flex;
+    align-items:    center;
+    justify-content: center;
+    gap:            10px;
+    transition:     all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-outline:active {
+    background:  var(--accent-glow-strong);
+    transform:   scale(0.98);
+}
+
+/* ============================================================
+   IDENTITY / SECTION DIVIDER
+   ============================================================ */
+#identity-section {
+    border-top:  1px dashed var(--border-light);
+    padding-top: 20px;
+    margin-top:  8px;
+}
+
+.section-divider {
+    display:      flex;
+    align-items:  center;
+    gap:          12px;
+    margin-bottom: 18px;
+}
+
+.section-divider-label {
+    font-family:    var(--font-display);
+    font-size:      0.7rem;
+    font-weight:    700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color:          var(--accent);
+    white-space:    nowrap;
+}
+
+.section-divider::after {
+    content:    '';
+    flex:       1;
+    height:     1px;
+    background: var(--border);
+}
+
+/* ============================================================
+   ERROR TEXT
+   ============================================================ */
+.error-text {
+    color:         var(--error);
+    font-family:   var(--font-display);
+    font-size:     0.88rem;
+    font-weight:   600;
+    letter-spacing: 0.03em;
+    margin-top:    14px;
+    display:       none;
+    text-align:    center;
+    background:    var(--error-bg);
+    padding:       12px 14px;
+    border-radius: var(--r-md);
+    border:        1px solid var(--error-border);
+    line-height:   1.4;
+}
+
+/* ============================================================
+   HOMEPAGE — MODULE LIST
+   ============================================================ */
+#homepage-screen {
+    padding-top: 0;
+}
+
+.module-list {
+    display:        flex;
+    flex-direction: column;
+    gap:            12px;
+}
+
+/* ============================================================
+   FORM SCREEN
+   ============================================================ */
+#app-screen .card {
+    padding:    0;
+    background: transparent;
+    border:     none;
+}
+
+.form-screen-header {
+    padding:    20px 4px 14px;
+}
+
+#dynamic-form-container {
+    display:        flex;
+    flex-direction: column;
+}
+
+/* Horizontal rule between form sections if JS injects hr */
+#dynamic-form-container hr {
+    border:         none;
+    border-top:     1px solid var(--border);
+    margin:         8px 0 20px;
+}
+
+/* ============================================================
+   SUCCESS SCREEN
+   ============================================================ */
+.success-icon-wrap {
+    margin-bottom: 28px;
+}
+
+.success-icon {
+    width:         88px;
+    height:        88px;
+    background:    var(--success-bg);
+    border:        3px solid var(--success);
+    border-radius: 50%;
+    display:       flex;
+    align-items:   center;
+    justify-content: center;
+    font-size:     2.2rem;
+    color:         var(--success);
+    animation:     pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select:   none;
+}
+
+@keyframes pop-in {
+    from { transform: scale(0.3); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.success-title {
+    font-family:    var(--font-display);
+    font-size:      1.8rem;
+    font-weight:    700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color:          var(--success);
+    margin-bottom:  8px;
+    line-height:    1;
+}
+
+.success-subtitle {
+    font-size:     0.9rem;
+    color:         var(--text-muted);
+    margin-bottom: 36px;
+    line-height:   1.5;
+    max-width:     280px;
+}
+
+/* Queue panel on success screen — purely visual, queue count lives in footer */
+.queue-panel {
+    background:    var(--surface);
+    border:        1px solid var(--border-mid);
+    border-radius: var(--r-lg);
+    padding:       20px 28px;
+    text-align:    center;
+    margin-bottom: 28px;
+    width:         100%;
+    max-width:     300px;
+}
+
+.queue-panel-label {
+    font-family:    var(--font-display);
+    font-size:      0.6rem;
+    font-weight:    700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color:          var(--text-dim);
+    margin-bottom:  10px;
+}
+
+.queue-panel-note {
+    font-size:   0.82rem;
+    color:       var(--text-muted);
+    margin-top:  8px;
+    line-height: 1.4;
+}
+
+/* ============================================================
+   LEGACY — pending-queue class used inline in success screen
+   ============================================================ */
+.pending-queue {
+    display:       flex;
+    align-items:   center;
+    justify-content: space-between;
+    background:    var(--surface);
+    border:        1px dashed var(--border-mid);
+    border-radius: var(--r-md);
+    padding:       14px 16px;
+    margin-bottom: 20px;
+    width:         100%;
+    max-width:     300px;
+    font-size:     0.9rem;
+    color:         var(--text-muted);
+}
+
+/* ============================================================
+   UTILITY — JS-injected file note paragraph
+   ============================================================ */
+#dynamic-form-container p[style*="0.7rem"] {
+    font-size:   0.75rem !important;
+    color:       var(--text-dim) !important;
+    margin-top:  8px !important;
+    padding-left: 4px;
+    font-style:  italic;
+}
+
+/* ============================================================
+   SCROLLBAR (webkit)
+   ============================================================ */
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-light); border-radius: 2px; }
+
+/* ============================================================
+   SAFE AREA INSETS — notched phones
+   ============================================================ */
+@supports (padding: max(0px)) {
+    .app-bar     { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+    .status-strip { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+}
+
+/* ============================================================
+   ORIENTATION — landscape field use
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+    :root {
+        --bar-top:    50px;
+        --bar-bottom: 54px;
+        --input-height: 52px;
+        --btn-lg:     56px;
+    }
+    .screen { padding: 12px; }
+}

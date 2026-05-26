@@ -1,162 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HydroStack | Manager Workspace</title>
-    <link rel="stylesheet" href="admin.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HydroStack | Manager Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-    <div id="sync-toast" class="toast hidden">
-        <div class="toast-header">🔒 Secure Local Sync</div>
-        <p>New field data is available. Refresh workspace to view latest reports.<br><br><span style="font-size: 0.75rem; color: var(--accent);">Developed by <a href="https://erangelmainali.com.np" target="_blank" style="color: var(--accent);">erangelmainali.com.np</a></span></p>
-        <button onclick="location.reload()" class="btn-primary" style="margin-top: 10px; padding: 8px;">Refresh Workspace</button>
-        <button onclick="document.getElementById('sync-toast').classList.add('hidden')" class="btn-secondary" style="margin-top: 10px; padding: 8px; border: none;">Dismiss</button>
+  <!-- ══════════════════════════════════════════════
+       TOAST NOTIFICATION
+  ══════════════════════════════════════════════ -->
+  <div id="sync-toast" class="toast hidden">
+    <div class="toast-header">⚡ Secure Local Sync</div>
+    <p>New field data is available. Refresh your workspace to view the latest inspection reports.</p>
+    <p style="font-size: 0.7rem; color: var(--accent); margin-top: 4px;">
+      Developed by <a href="https://erangelmainali.com.np" target="_blank" style="color: var(--accent); text-decoration: underline;">erangelmainali.com.np</a>
+    </p>
+    <div class="toast-actions">
+      <button onclick="location.reload()" class="btn-primary">Refresh Now</button>
+      <button onclick="document.getElementById('sync-toast').classList.add('hidden')" class="btn-secondary">Dismiss</button>
     </div>
+  </div>
 
-    <div id="login-screen" class="screen active">
-        <div class="login-card">
-            <div class="logo">🏗️ HydroStack <span class="badge">Manager</span></div>
-            <h1 id="login-title">Connect Engine</h1>
-            <p id="login-desc">Please paste the Web App URL by clicking "How to deploy my engine" below.</p>
-            <div class="input-group">
-                <input type="text" id="engine-url-input" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 15px;">
-            </div>
-            <button id="auth-btn" class="btn-primary" style="width: 100%;">Connect Workspace</button>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px;"><a href="#" onclick="document.getElementById('modal-engine-guide').classList.remove('hidden')" style="color: var(--text-muted); text-decoration: underline;">How to deploy my Engine?</a></p>
+  <!-- ══════════════════════════════════════════════
+       LOGIN SCREEN
+  ══════════════════════════════════════════════ -->
+  <div id="login-screen" class="screen active">
+    <div class="login-card">
+
+      <!-- Logo -->
+      <div class="logo" style="justify-content: center;">
+        <span>🏗️</span>
+        <span>HydroStack</span>
+        <span class="badge">Manager</span>
+      </div>
+
+      <h1 id="login-title">Connect Engine</h1>
+      <p id="login-desc">
+        Paste your Google Apps Script Web App URL to initialize your private serverless workspace.
+      </p>
+
+      <div class="input-group">
+        <label>Engine URL</label>
+        <input
+          type="text"
+          id="engine-url-input"
+          placeholder="https://script.google.com/macros/s/.../exec"
+          autocomplete="off"
+          spellcheck="false"
+          style="font-family: var(--font-mono); font-size: 0.75rem;"
+        >
+      </div>
+
+      <button id="auth-btn" class="btn-primary" style="width: 100%; padding: 13px; font-size: 0.9375rem;">
+        Connect Workspace
+      </button>
+
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 18px;">
+        <a
+          href="#"
+          onclick="document.getElementById('modal-engine-guide').classList.remove('hidden')"
+          style="color: var(--text-muted); text-decoration: underline; transition: color 0.15s;"
+          onmouseover="this.style.color='var(--accent)'"
+          onmouseout="this.style.color='var(--text-muted)'"
+        >⚙️ How to deploy my Engine?</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       DASHBOARD SCREEN
+  ══════════════════════════════════════════════ -->
+  <div id="dashboard-screen" class="screen layout-dashboard">
+
+    <!-- ── SIDEBAR ───────────────────────────────── -->
+    <aside class="sidebar">
+
+      <div class="sidebar-header">
+        <div class="logo">
+          <span>🏗️</span>
+          <span>HydroStack</span>
         </div>
-    </div>
-
-    <div id="dashboard-screen" class="screen layout-dashboard">
-        
-        <aside class="sidebar">
-            <div class="logo" style="margin-bottom: 40px;">🏗️ HydroStack</div>
-            <ul class="nav-menu">
-                <li class="active" onclick="switchTab('modules')">📁 Field Modules</li>
-                <li onclick="switchTab('forms')">📝 Form Builder</li>
-                <li onclick="switchTab('reports')" id="nav-reports">
-    📊 Live Reports <span id="notif-badge" class="badge-new" style="display:none;">NEW</span>
-</li>
-            </ul>
-            <div class="status-indicator" style="margin-top: auto;">
-                <span class="dot active"></span> DB Connected
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="topbar">
-                <h2>Manager Workspace</h2>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    
-                    <button id="new-module-btn" class="btn-primary">+ New Module</button>
-                </div>
-            </header>
-
-            <div id="tab-modules" class="tab-content active">
-                <div class="data-table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr><th>Module ID</th><th>Name</th><th>Location</th><th>Status</th><th>Action</th></tr>
-                        </thead>
-                        <tbody id="modules-list"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="tab-forms" class="tab-content">
-                <div class="form-builder-card">
-                    <h3>Design Inspection Form</h3>
-                    
-                    <div class="input-group">
-                        <label>Target Module</label>
-                        <select id="form-target-module"><option>Select a module...</option></select>
-                    </div>
-
-                    <div id="form-fields-container"></div>
-
-                    <div style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button class="btn-secondary" onclick="addFormField()">+ Add Question</button>
-                        <button class="btn-primary" id="save-form-btn">Deploy to Inspectors</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-reports" class="tab-content">
-                <div class="input-group" style="max-width: 400px; margin-bottom: 20px;">
-                    <label>Select Module to View Logs</label>
-                    <select id="report-module-select" onchange="renderReportTable()"><option value="">Select...</option></select>
-                </div>
-
-                <div class="card" id="pdf-export-area">
-                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">Site Inspection Report</h3>
-                    <p><strong>Module ID:</strong> <span id="report-mod-name">None Selected</span></p>
-                    <p><strong>Date Generated:</strong> <span id="report-date"></span></p>
-                    <br>
-                    <table class="data-table" style="width: 100%;">
-                        <thead><tr><th>Date / Time</th><th>Inspector</th><th>Field Data</th></tr></thead>
-                        <tbody id="report-table-body">
-                            <tr><td colspan="3" style="text-align: center; padding: 30px;">Select a module to fetch live data.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button class="btn-primary" onclick="generatePDF()" style="margin-top: 20px;">Download PDF</button>
-            </div>
-
-        </main>
-    </div>
-
-    <div id="modal-new-module" class="modal hidden">
-        <div class="modal-content">
-            <h3>Initialize New Module</h3>
-            <div class="input-group"><label>Module Name</label><input type="text" id="mod-name" placeholder="e.g., Daily Progress"></div>
-            <div class="input-group"><label>Location</label><input type="text" id="mod-loc"></div>
-            <div class="input-group"><label>Description</label><textarea id="mod-desc" rows="2"></textarea></div>
-            <div class="input-group"><label>Assigned Inspector(s)</label><input type="text" id="mod-workers" placeholder="e.g. John Doe, Sarah Smith"></div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-primary" id="submit-module-btn" style="flex: 1;">Create Module</button>
-                <button class="btn-secondary" onclick="closeModal('modal-new-module')">Cancel</button>
-            </div>
+        <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-faint); margin-top: 4px; letter-spacing: 0.08em; text-transform: uppercase;">
+          Command Center v2
         </div>
-    </div>
-<div id="modal-engine-guide" class="modal hidden">
-        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
-            <h3 style="color: var(--accent); margin-bottom: 10px;">⚙️ Engine Deployment Guide</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">HydroStack is a zero-backend platform. To guarantee 100% data privacy, your database lives entirely inside your own Google Drive. Follow these 5 steps to initialize your Engine (Takes 2 mins).</p>
-            
-            <ol style="margin-left: 20px; line-height: 1.6; font-size: 0.9rem; color: var(--text-main); margin-bottom: 20px;">
-                <li>Go to <a href="https://script.google.com/" target="_blank" style="color: var(--google-blue);">script.google.com</a> and click <strong>New Project</strong>.</li>
-                <li>Delete the default code and <strong>paste the code below</strong>.</li>
-                <li>Click <strong>Deploy > New Deployment</strong>.</li>
-                <li>Select Type: <strong>Web App</strong>. Set "Execute as" to <strong>Me</strong>. Set "Who has access" to <strong>Anyone</strong>.</li>
-                <li>Click Deploy, Authorize access, and <strong>copy the Web App URL</strong>. Paste it into the HydroStack login screen!</li>
-            </ol>
+      </div>
 
-            <div style="background: var(--bg-dark); padding: 10px; border: 1px solid var(--border); border-radius: 4px; position: relative; margin-bottom: 20px;">
-                <button onclick="copyEngineCode()" style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; font-size: 0.7rem; background: var(--surface); color: var(--text-main); border: 1px solid var(--border); cursor: pointer;">Copy Code</button>
-                <pre id="engine-script-code" style="font-family: monospace; font-size: 0.75rem; color: var(--success); overflow-x: auto; white-space: pre-wrap;">
-function doPost(e) {
+      <div class="sidebar-nav">
+        <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-faint); letter-spacing: 0.14em; text-transform: uppercase; padding: 0 4px; margin-bottom: 8px;">
+          Navigation
+        </div>
+        <ul class="nav-menu">
+          <li class="active" onclick="switchTab('modules')">
+            <span>📁</span> Field Modules
+          </li>
+          <li onclick="switchTab('forms')">
+            <span>📝</span> Form Builder
+          </li>
+          <li onclick="switchTab('reports')" id="nav-reports">
+            <span>📊</span>
+            Live Reports
+            <span id="notif-badge" class="badge-new" style="display:none;">NEW</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="dot active"></span>
+          <span>DB Connected</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── MAIN CONTENT ───────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Top Bar -->
+      <header class="topbar">
+        <h2>Manager Workspace</h2>
+        <div class="topbar-actions">
+          <button id="new-module-btn" class="btn-primary">+ New Module</button>
+        </div>
+      </header>
+
+      <!-- ── TAB: MODULES ─────────────────────────── -->
+      <div id="tab-modules" class="tab-content active">
+
+        <div class="section-header">
+          <div class="section-title">Active Field Modules</div>
+          <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-faint);">
+            LIVE • AUTO-SYNC
+          </div>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Module ID</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="modules-list">
+              <tr>
+                <td colspan="5" style="text-align:center; padding: 48px; color: var(--text-faint); font-size: 0.875rem;">
+                  Initializing workspace data…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- ── TAB: FORM BUILDER ─────────────────────── -->
+      <div id="tab-forms" class="tab-content">
+
+        <div class="form-builder-card">
+          <h3>Design Inspection Form</h3>
+
+          <div class="input-group" style="max-width: 380px;">
+            <label>Target Module</label>
+            <select id="form-target-module">
+              <option>Select a module…</option>
+            </select>
+          </div>
+
+          <div id="form-fields-container"></div>
+
+          <div class="form-builder-actions">
+            <button class="btn-secondary" onclick="addFormField()">+ Add Question</button>
+            <button class="btn-primary" id="save-form-btn">Deploy to Inspectors</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── TAB: REPORTS ──────────────────────────── -->
+      <div id="tab-reports" class="tab-content">
+
+        <div class="report-filters">
+          <div class="input-group">
+            <label>Select Module to View Logs</label>
+            <select id="report-module-select" onchange="renderReportTable()">
+              <option value="">Select a module…</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="generatePDF()" style="margin-bottom: 0; white-space: nowrap;">
+            ↓ Export PDF
+          </button>
+        </div>
+
+        <!-- PDF Export Area — preserved ID for JS -->
+        <div id="pdf-export-area">
+
+          <!-- Report Header (inline block for PDF) -->
+          <div class="pdf-report-header">
+            <div class="pdf-report-meta">
+              <h3>Site Inspection Report</h3>
+              <div class="report-meta-row">
+                <span>
+                  MODULE&nbsp;&nbsp;<strong id="report-mod-name">None Selected</strong>
+                </span>
+                <span>
+                  GENERATED&nbsp;&nbsp;<strong id="report-date">—</strong>
+                </span>
+              </div>
+            </div>
+            <div class="pdf-watermark">
+              🏗️ HydroStack<br>
+              Field Operations<br>
+              <span style="font-size: 0.6rem; opacity: 0.6;">CONFIDENTIAL</span>
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <table class="data-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 130px;">Date / Time</th>
+                <th style="width: 140px;">Inspector</th>
+                <th>Field Data</th>
+              </tr>
+            </thead>
+            <tbody id="report-table-body">
+              <tr>
+                <td colspan="3" style="text-align: center; padding: 48px; color: var(--text-faint);">
+                  Select a module above to load live inspection data.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div><!-- /#pdf-export-area -->
+
+      </div><!-- /#tab-reports -->
+
+    </main>
+  </div><!-- /#dashboard-screen -->
+
+  <!-- ══════════════════════════════════════════════
+       MODAL: NEW MODULE
+  ══════════════════════════════════════════════ -->
+  <div id="modal-new-module" class="modal hidden">
+    <div class="modal-content">
+      <h3>Initialize New Module</h3>
+
+      <div class="input-group">
+        <label>Module Name</label>
+        <input type="text" id="mod-name" placeholder="e.g., Daily Progress Inspection">
+      </div>
+
+      <div class="input-group">
+        <label>Location</label>
+        <input type="text" id="mod-loc" placeholder="e.g., Site A — Block 3">
+      </div>
+
+      <div class="input-group">
+        <label>Description</label>
+        <textarea id="mod-desc" rows="2" placeholder="Brief description of this module's scope…"></textarea>
+      </div>
+
+      <div class="input-group">
+        <label>Assigned Inspector(s)</label>
+        <input type="text" id="mod-workers" placeholder="e.g. John Doe, Sarah Smith">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" id="submit-module-btn">Create Module</button>
+        <button class="btn-secondary" onclick="closeModal('modal-new-module')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       MODAL: ENGINE DEPLOYMENT GUIDE
+  ══════════════════════════════════════════════ -->
+  <div id="modal-engine-guide" class="modal hidden">
+    <div class="modal-content" style="max-width: 640px; max-height: 82vh; overflow-y: auto;">
+
+      <h3>⚙️ Engine Deployment Guide</h3>
+
+      <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 20px; line-height: 1.65;">
+        HydroStack is a zero-backend platform. Your database lives entirely inside your own Google Drive,
+        guaranteeing 100% data privacy. Follow these 5 steps to initialize your Engine (takes ~2 minutes).
+      </p>
+
+      <ol class="guide-steps">
+        <li>
+          Go to <a href="https://script.google.com/" target="_blank" style="color: var(--google-blue); text-decoration: underline;">script.google.com</a>
+          and click <strong style="color: var(--text-main);">New Project</strong>.
+        </li>
+        <li>Delete the default code and <strong style="color: var(--text-main);">paste the script below</strong>.</li>
+        <li>Click <strong style="color: var(--text-main);">Deploy → New Deployment</strong>.</li>
+        <li>
+          Select Type: <strong style="color: var(--accent);">Web App</strong>.
+          Set "Execute as" to <strong style="color: var(--accent);">Me</strong>.
+          Set "Who has access" to <strong style="color: var(--accent);">Anyone</strong>.
+        </li>
+        <li>
+          Click <strong style="color: var(--text-main);">Deploy</strong>, authorize access,
+          and <strong style="color: var(--accent);">copy the Web App URL</strong>.
+          Paste it into the HydroStack login screen!
+        </li>
+      </ol>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header">
+          <span class="code-lang-tag">Google Apps Script</span>
+          <button
+            onclick="copyEngineCode()"
+            style="padding: 5px 12px; font-size: 0.7rem; background: var(--surface-3); color: var(--text-main); border: 1px solid var(--border); cursor: pointer; border-radius: var(--radius); font-family: var(--font-mono); letter-spacing: 0.04em; transition: all 0.15s;"
+            onmouseover="this.style.borderColor='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)'"
+          >Copy Code</button>
+        </div>
+        <pre id="engine-script-code">function doPost(e) {
   try {
     var params = JSON.parse(e.postData.contents);
     var action = params.action;
 
     if (action === 'init') {
-      // SELF-HEALING: Search the Admin's Drive for an existing database file
       var files = DriveApp.getFilesByName("_HydroStack_Workspace_DB");
       var ss;
-      
       if (files.hasNext()) {
-        // Safe lock: An existing database was found, recover it instantly!
         ss = SpreadsheetApp.open(files.next());
       } else {
-        // First-time setup: Create the master tables from scratch
         ss = SpreadsheetApp.create("_HydroStack_Workspace_DB");
-        ss.insertSheet("Modules"); 
-        ss.insertSheet("Users"); 
-        ss.insertSheet("Forms"); 
+        ss.insertSheet("Modules");
+        ss.insertSheet("Users");
+        ss.insertSheet("Forms");
         ss.insertSheet("Submissions");
-        var sheet1 = ss.getSheetByName('Sheet1'); 
+        var sheet1 = ss.getSheetByName('Sheet1');
         if (sheet1) ss.deleteSheet(sheet1);
       }
       return ContentService.createTextOutput(JSON.stringify({ success: true, spreadsheetId: ss.getId() })).setMimeType(ContentService.MimeType.JSON);
@@ -165,8 +349,8 @@ function doPost(e) {
       var ss = SpreadsheetApp.openById(params.sheetId);
       var sheet = ss.getSheetByName(params.tabName);
       if (Array.isArray(params.values[0])) {
-         var startRow = sheet.getLastRow() + 1; 
-         if(params.values.length > 0) sheet.getRange(startRow, 1, params.values.length, params.values[0].length).setValues(params.values);
+        var startRow = sheet.getLastRow() + 1;
+        if(params.values.length > 0) sheet.getRange(startRow, 1, params.values.length, params.values[0].length).setValues(params.values);
       } else { sheet.appendRow(params.values); }
       return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -186,12 +370,20 @@ function doPost(e) {
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
-}
-                </pre>
-            </div>
-            <button class="btn-secondary" onclick="closeModal('modal-engine-guide')" style="width: 100%;">Close Guide</button>
-        </div>
+}</pre>
+      </div>
+
+      <button class="btn-secondary" onclick="closeModal('modal-engine-guide')" style="width: 100%;">
+        Close Guide
+      </button>
+
     </div>
-    <script src="admin.js"></script>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       JS — ORIGINAL LOGIC (UNMODIFIED)
+  ══════════════════════════════════════════════ -->
+  <script src="admin.js"></script>
+
 </body>
 </html>

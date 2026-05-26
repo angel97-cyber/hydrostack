@@ -3,79 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#FFD600">
     <title>HydroStack | Field App</title>
+
+    <!-- Rajdhani (display font) — loads online, degrades to Arial Narrow offline -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+
     <link rel="stylesheet" href="worker.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#FFD600">
+
+    <!-- iOS homescreen icons (add actual assets to match sizes) -->
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2933/2933245.png">
 </head>
 <body>
 
+    <!-- ═══════════════════════════════════════════
+         TOP APP BAR
+         ═══════════════════════════════════════════ -->
     <header class="app-bar">
-        <div class="logo">🏗️ HydroStack <span class="badge">Field</span></div>
-        <div class="sync-status" id="network-status"><span class="dot green"></span> Online</div>
+        <div class="logo">
+            🏗&nbsp;<span class="logo-text">HYDRO</span><span class="logo-accent">STACK</span>
+            <span class="badge">FIELD</span>
+        </div>
+        <!-- network-status: innerHTML replaced by updateNetworkStatus() -->
+        <div class="sync-status" id="network-status">
+            <span class="dot green"></span> Online
+        </div>
     </header>
 
+
+    <!-- ═══════════════════════════════════════════
+         LOGIN SCREEN
+         ═══════════════════════════════════════════ -->
     <main id="login-screen" class="screen active">
+
+        <div class="screen-header">
+            <h2 class="screen-title">Module Access</h2>
+            <p class="screen-subtitle">Paste credentials provided by your Site Manager.</p>
+        </div>
+
         <div class="card">
-            <h2>Module Access</h2>
-            <p>Paste the credentials sent by your Site Manager.</p>
-            
+
             <div class="input-group">
-                <label>Access Link (Smart Key)</label>
-                <input type="text" id="smart-key-input" placeholder="Paste the long key here...">
-            </div>
-            <div class="input-group">
-                <label>Passcode</label>
-                <input type="number" id="pin-input" placeholder="e.g. 1234">
+                <label for="smart-key-input">
+                    Access Link
+                    <span class="label-hint">Smart Key</span>
+                </label>
+                <textarea
+                    id="smart-key-input"
+                    rows="3"
+                    placeholder="Paste the encrypted key here…"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                ></textarea>
             </div>
 
-            <div id="identity-section" style="border-top: 1px dashed var(--border); padding-top: 15px; margin-top: 10px;">
-                <p style="font-size: 0.8rem; color: var(--accent); margin-bottom: 10px;">👤 Inspector Registration</p>
+            <div class="input-group">
+                <label for="pin-input">Passcode</label>
+                <input
+                    type="number"
+                    id="pin-input"
+                    placeholder="e.g. 1234"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="one-time-code"
+                >
+            </div>
+
+            <!-- identity-section: visibility toggled by window.onload in worker.js -->
+            <div id="identity-section">
+                <div class="section-divider">
+                    <span class="section-divider-label">👤 Inspector Registration</span>
+                </div>
                 <div class="input-group">
-                    <label>Full Name</label>
-                    <input type="text" id="inspector-name" placeholder="John Doe">
+                    <label for="inspector-name">Full Name</label>
+                    <input
+                        type="text"
+                        id="inspector-name"
+                        placeholder="e.g. John Doe"
+                        autocomplete="name"
+                        autocapitalize="words"
+                    >
                 </div>
             </div>
 
-            <button id="auth-btn" class="btn-primary" style="margin-top: 15px;">Connect & Download</button>
+            <button id="auth-btn" class="btn-primary btn-large" style="margin-top: 8px;">
+                ⚡ Connect &amp; Download
+            </button>
+            <!-- login-error: shown/hidden by auth-btn click handler -->
             <p id="login-error" class="error-text"></p>
+
         </div>
     </main>
 
-    <main id="homepage-screen" class="screen" style="padding: 20px; flex-direction: column;">
-        <header style="margin-bottom: 20px;">
-            <h2 style="color: var(--accent);">My Field Modules</h2>
-            <p style="color: var(--text-muted);">Cached for offline use</p>
-        </header>
-        
-        <div id="worker-module-list" style="display: flex; flex-direction: column; gap: 15px;">
-            </div>
+
+    <!-- ═══════════════════════════════════════════
+         HOMEPAGE — MY MODULES
+         ═══════════════════════════════════════════ -->
+    <main id="homepage-screen" class="screen" style="padding: 16px; flex-direction: column;">
+
+        <div class="screen-header">
+            <h2 class="screen-title" style="color: var(--accent);">My Field Modules</h2>
+            <p class="screen-subtitle">
+                Cached for offline use &nbsp;·&nbsp;
+                Inspector: <strong id="display-inspector-name" style="color: var(--accent);">–</strong>
+            </p>
+        </div>
+
+        <!-- worker-module-list: populated by renderWorkerHomepage() -->
+        <div id="worker-module-list" class="module-list"></div>
+
     </main>
+
+
+    <!-- ═══════════════════════════════════════════
+         APP / FORM SCREEN
+         ═══════════════════════════════════════════ -->
     <main id="app-screen" class="screen">
         <div class="card">
-            <h2 style="color: var(--accent); margin-bottom: 5px;" id="module-title-display">Loading Module...</h2>
-            <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px;">Inspector: <span id="display-inspector-name"></span></p>
-            
+
+            <div class="form-screen-header">
+                <h2 class="screen-title" id="module-title-display">Loading Module…</h2>
+                <p class="screen-subtitle">
+                    Inspector: <span id="display-inspector-name"></span>
+                </p>
+            </div>
+
+            <!-- dynamic-form-container: built by renderFormUI() -->
             <div id="dynamic-form-container"></div>
-            <button id="submit-log-btn" class="btn-primary btn-large" style="display: none;">Save & Sync Log</button>
+
+            <!-- submit-log-btn: display toggled by renderFormUI(); label changed by click handler -->
+            <button id="submit-log-btn" class="btn-primary btn-large" style="display: none;">
+                💾 Save &amp; Sync Log
+            </button>
+
         </div>
     </main>
 
-    <main id="success-screen" class="screen" style="text-align: center; padding-top: 50px;">
-        <h1 style="font-size: 3rem; margin-bottom: 10px;">✅</h1>
-        <h2 style="color: var(--success); margin-bottom: 15px;">Log Saved Securely</h2>
-        <p style="color: var(--text-muted); margin-bottom: 30px;">Your field data has been added to the queue.</p>
-        
-        <div class="pending-queue" style="text-align: left; margin-bottom: 30px;">
-            <p>Logs pending sync: <strong id="pending-count">0</strong></p>
-            <button id="force-sync-btn" class="btn-secondary">Force Sync Now</button>
+
+    <!-- ═══════════════════════════════════════════
+         SUCCESS SCREEN
+         ═══════════════════════════════════════════ -->
+    <main id="success-screen" class="screen" style="text-align: center; padding-top: 40px;">
+
+        <div class="success-icon-wrap">
+            <div class="success-icon">✓</div>
         </div>
 
-        <button onclick="document.getElementById('success-screen').classList.remove('active'); document.getElementById('homepage-screen').classList.add('active');" class="btn-outline" style="width: 100%; padding: 15px; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; font-weight: bold; cursor: pointer;">
-            🏠 Back to Homepage
+        <h2 class="success-title">Log Saved</h2>
+        <p class="success-subtitle">
+            Field data has been added to the sync queue.
+            Check the footer bar for queue status.
+        </p>
+
+        <!-- queue-panel: purely visual on this screen.
+             Authoritative pending-count is in the footer strip (always visible). -->
+        <div class="queue-panel">
+            <div class="queue-panel-label">Awaiting Sync</div>
+            <div class="queue-panel-note">
+                Queue counter shown in the footer bar below.
+                Logs upload automatically when online.
+            </div>
+        </div>
+
+        <button
+            onclick="document.getElementById('success-screen').classList.remove('active'); document.getElementById('homepage-screen').classList.add('active');"
+            class="btn-outline btn-large"
+            style="max-width: 320px;"
+        >
+            ← Back to Modules
         </button>
+
     </main>
+
+
+    <!-- ═══════════════════════════════════════════
+         BOTTOM STATUS STRIP  (always visible)
+         pending-count and force-sync-btn live here
+         so queue state is accessible from any screen.
+         ═══════════════════════════════════════════ -->
+    <footer class="status-strip">
+
+        <!-- Queue count tile — pending-count id used by updateQueueUI() -->
+        <div class="strip-tile">
+            <span class="strip-tile-label">Queue</span>
+            <span class="strip-tile-value" id="pending-count">0</span>
+        </div>
+
+        <!-- Sync button — force-sync-btn id used by syncPendingLogs() + event listener -->
+        <button id="force-sync-btn">
+            ↺&nbsp; Sync Now
+        </button>
+
+        <!-- Live network indicator (mirrors header status text, read-only) -->
+        <div class="strip-tile" id="strip-net-tile">
+            <span class="strip-tile-label">Signal</span>
+            <span class="strip-tile-value" id="strip-net-val" style="font-size: 0.82rem; color: var(--success);">Online</span>
+        </div>
+
+    </footer>
+
 
     <script src="worker.js"></script>
+
+    <!-- Service Worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js');
+            });
+        }
+
+        // Mirror network status to the bottom strip net tile
+        // (does not touch any worker.js logic — purely cosmetic sync)
+        function _updateStripNet() {
+            var val = document.getElementById('strip-net-val');
+            if (!val) return;
+            if (navigator.onLine) {
+                val.textContent = 'Online';
+                val.style.color = 'var(--success)';
+            } else {
+                val.textContent = 'Offline';
+                val.style.color = 'var(--error)';
+            }
+        }
+        window.addEventListener('online',  _updateStripNet);
+        window.addEventListener('offline', _updateStripNet);
+        document.addEventListener('DOMContentLoaded', _updateStripNet);
+
+        // Highlight pending-count badge when queue is non-zero
+        // MutationObserver watches the text node — no worker.js changes required
+        document.addEventListener('DOMContentLoaded', function () {
+            var pc = document.getElementById('pending-count');
+            if (!pc) return;
+            function _highlightQueue() {
+                var n = parseInt(pc.textContent, 10) || 0;
+                if (n > 0) {
+                    pc.style.color     = 'var(--accent)';
+                    pc.style.animation = 'dot-blink 1.8s ease-in-out infinite';
+                } else {
+                    pc.style.color     = 'var(--text-dim)';
+                    pc.style.animation = 'none';
+                }
+            }
+            var obs = new MutationObserver(_highlightQueue);
+            obs.observe(pc, { childList: true, subtree: true, characterData: true });
+            _highlightQueue();
+        });
+    </script>
+
 </body>
 </html>

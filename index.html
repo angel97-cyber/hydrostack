@@ -8,38 +8,177 @@
 </head>
 <body>
 
+    <!-- ═══ NAVBAR ═══════════════════════════════════════════ -->
     <nav>
-        <div class="logo">🏗️ HydroStack</div>
+        <div class="logo">
+            🏗️ HydroStack<span></span>
+        </div>
         <div class="nav-links">
             <a href="#features">Features</a>
-            <a href="#how-it-works">How it Works</a>
+            <a href="#how-it-works">How It Works</a>
         </div>
     </nav>
 
+    <!-- ═══ HERO ══════════════════════════════════════════════ -->
     <header class="hero">
-        <div class="container" style="text-align: center; max-width: 800px;">
+        <div class="container" style="text-align: center; max-width: 820px;">
+
             <span class="badge">Built for Infrastructure in Nepal 🇳🇵</span>
-            <h1 style="margin-top: 20px;">Field Notes Offline. <br><span class="highlight">Safety Reports Online.</span></h1>
-            <p style="margin: 20px auto 40px auto; font-size: 1.2rem;">Select your portal to continue to the application.</p>
-            
-            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-                
-                <div style="background: var(--surface); padding: 30px; border: 1px solid var(--accent); border-radius: 8px; width: 300px; text-align: left; transition: transform 0.2s;">
-                    <h3 style="color: var(--accent); margin-bottom: 10px;">👑 Project Manager</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Create projects, build custom forms, and approve site workers.</p>
-                    <a href="./admin/index.html" class="btn-primary" style="width: 100%; text-align: center;">Enter Admin Portal</a>
+
+            <h1 style="margin-top: 8px;">
+                Field Notes Offline.<br>
+                <span class="highlight">Safety Reports Online.</span>
+            </h1>
+
+            <!-- ── VALUE PROPOSITION BANNER ── -->
+            <div class="value-banner">
+                <span class="vb-icon">⚡</span>
+                <div>
+                    <strong>Zero Cloud Database Costs</strong>
+                    <p>100% offline field tracking — completely hosted inside your private Google Drive.
+                       No SaaS subscription. No vendor lock-in. Your data, your infrastructure.</p>
+                </div>
+            </div>
+
+            <!-- ── PORTAL SELECTOR ── -->
+            <p style="margin: 48px auto 0; font-size: 1.05rem; color: var(--text-2); font-weight: 300; letter-spacing: 0.02em;">
+                Select your portal to continue to the application.
+            </p>
+
+            <div class="portal-grid">
+
+                <!-- Admin Portal -->
+                <div class="portal-card portal-card-amber" data-id="PORTAL-01">
+                    <div class="role-tag">Role / Project Lead</div>
+                    <h3 style="color: var(--amber);">👑 Project Manager</h3>
+                    <p>Create projects, build custom forms, and approve site workers.</p>
+                    <a href="./admin/index.html" class="btn-primary" style="width: 100%; text-align: center; display: block;">
+                        Enter Admin Portal →
+                    </a>
                 </div>
 
-                <div style="background: var(--surface); padding: 30px; border: 1px solid var(--border); border-radius: 8px; width: 300px; text-align: left; transition: transform 0.2s;">
-                    <h3 style="color: #fff; margin-bottom: 10px;">👷 Site Engineer</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Access your assigned projects and submit offline logs.</p>
-                    <a href="./worker/index.html" class="btn-secondary" style="width: 100%; text-align: center;">Enter Field App</a>
+                <!-- Worker Portal -->
+                <div class="portal-card portal-card-slate" data-id="PORTAL-02">
+                    <div class="role-tag">Role / Field Inspector</div>
+                    <h3 style="color: var(--text);">👷 Site Engineer</h3>
+                    <p>Access your assigned projects and submit offline logs.</p>
+                    <a href="./worker/index.html" class="btn-secondary" style="width: 100%; text-align: center; display: block;">
+                        Enter Field App →
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </header>
+
+    <!-- ═══ STAT STRIP ════════════════════════════════════════ -->
+    <div class="stat-strip">
+        <div class="stat-item">
+            <span class="stat-num">₹0</span>
+            <span class="stat-label">Database Cost</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Offline-First</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num">PWA</span>
+            <span class="stat-label">Installable</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num">GDrive</span>
+            <span class="stat-label">Your Private Backend</span>
+        </div>
+    </div>
+
+    <!-- ═══ FEATURES ══════════════════════════════════════════ -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Built for the Field</h2>
+            <div class="grid">
+
+                <div class="card">
+                    <span class="card-icon">📡</span>
+                    <h3>Offline-First Architecture</h3>
+                    <p>Works at zero connectivity — mountain tunnels, gorge sites, remote camps. Syncs automatically when signal returns.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">🔒</span>
+                    <h3>Zero Cloud Database</h3>
+                    <p>Entire backend runs on Google Apps Script. No third-party SaaS costs. No vendor surveillance. Data lives in your Drive.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">📋</span>
+                    <h3>Custom Form Builder</h3>
+                    <p>Admins build site-specific inspection checklists. Engineers fill them offline. Managers approve and archive.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">🏔️</span>
+                    <h3>Terrain-Ready PWA</h3>
+                    <p>Install on any Android or iOS device. Lightweight, fast-loading, and hardened for extreme field conditions in Nepal.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">📊</span>
+                    <h3>Structured Safety Reports</h3>
+                    <p>Auto-formatted reports pushed to Google Sheets. Exportable, auditable, and ready for regulatory compliance.</p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icon">🛡️</span>
+                    <h3>Role-Based Access</h3>
+                    <p>Admin and engineer roles with managed project scoping. Managers approve workers before they can access a site.</p>
                 </div>
 
             </div>
         </div>
-    </header>
+    </section>
 
+    <!-- ═══ HOW IT WORKS ══════════════════════════════════════ -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h4>Deploy to Drive</h4>
+                    <p>Fork the Google Apps Script backend to your own Google account in minutes. No servers.</p>
+                </div>
+
+                <div class="line-connect"></div>
+
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h4>Configure Projects</h4>
+                    <p>Admin creates projects, defines inspection forms, and approves field engineers.</p>
+                </div>
+
+                <div class="line-connect"></div>
+
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h4>Go Offline</h4>
+                    <p>Engineers install the PWA and fill out field reports — fully offline in any terrain.</p>
+                </div>
+
+                <div class="line-connect"></div>
+
+                <div class="step">
+                    <div class="step-number">04</div>
+                    <h4>Sync &amp; Report</h4>
+                    <p>On connectivity, data syncs to Sheets. Reports are formatted and archived instantly.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ════════════════════════════════════════════ -->
     <footer style="margin-top: 100px;">
         <div class="container">
             <p>&copy; 2026 HydroStack. Designed for the builders of Nepal.</p>
