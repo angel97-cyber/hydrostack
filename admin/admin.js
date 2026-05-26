@@ -3,8 +3,12 @@ let masterEngineUrl = localStorage.getItem('hs_engine_url') || null;
 let masterSheetId = localStorage.getItem('hydrostack_master_db') || null;
 let allSubmissions = []; 
 
+// PERMANENT PERSISTENCE GATEKEEPER
 window.onload = async function () {
-    if (masterEngineUrl && masterSheetId) launchDashboard();
+    // If the admin has an engine URL, they belong inside the app. No exceptions.
+    if (masterEngineUrl) {
+        await launchDashboard();
+    }
 };
 
 document.getElementById('auth-btn').addEventListener('click', async () => {
@@ -19,45 +23,57 @@ document.getElementById('auth-btn').addEventListener('click', async () => {
 });
 
 async function launchDashboard() {
+    // Optimistic UI: Flash directly past the login screen instantly
     document.getElementById('login-screen').classList.remove('active');
     document.getElementById('dashboard-screen').classList.add('active');
+    
     await initMasterWorkspace();
-    setInterval(showRefreshToast, 5 * 60 * 1000); 
+    
+    // Prevent interval duplication on page refreshes
+    if (!window.hsSyncInterval) {
+        window.hsSyncInterval = setInterval(showRefreshToast, 5 * 60 * 1000); 
+    }
 }
 
-// THE UNIFIED APPS SCRIPT RELAY
-// THE UNIFIED APPS SCRIPT RELAY (UPDATED FOR CORS BYPASS)
+// THE UNIFIED APPS SCRIPT RELAY (WITH CORS BYPASS)
 async function gasRequest(payload) {
     try {
-        // We explicitly force text/plain. This bypasses the CORS OPTIONS preflight check entirely.
-        // Google Apps Script will still successfully catch it and parse the JSON string.
         const res = await fetch(masterEngineUrl, { 
             method: 'POST', 
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload) 
         });
-        
         return await res.json();
     } catch (error) {
-        console.error("CORS or Network Error:", error);
-        alert("Connection blocked! Ensure your Google Apps Script is deployed with 'Who has access: Anyone'.");
-        document.getElementById('auth-btn').innerText = "Connect Engine"; // Reset UI button
+        console.error("Network relay failed:", error);
         throw error;
     }
 }
 
 async function initMasterWorkspace() {
-    if (masterSheetId) { loadDashboardData(); return; }
+    // Dual-layer state defense check
+    if (!masterSheetId) {
+        masterSheetId = localStorage.getItem('hydrostack_master_db');
+    }
     
-    const res = await gasRequest({ action: 'init' });
-    if (res.success) {
-        masterSheetId = res.spreadsheetId;
-        localStorage.setItem('hydrostack_master_db', masterSheetId);
-        loadDashboardData();
-    } else {
-        alert("Failed to initialize database. Check your Engine URL.");
+    // If we have a healthy sheet ID, pull down data and exit setup execution
+    if (masterSheetId && masterSheetId !== "null" && masterSheetId !== "undefined") { 
+        loadDashboardData(); 
+        return; 
+    }
+    
+    // If missing from browser storage, the self-healing Apps Script will look it up or initialize it safely
+    try {
+        const res = await gasRequest({ action: 'init' });
+        if (res.success) {
+            masterSheetId = res.spreadsheetId;
+            localStorage.setItem('hydrostack_master_db', masterSheetId);
+            loadDashboardData();
+        } else {
+            alert("Engine initialization rejected. Verify your Google Deployment configuration.");
+        }
+    } catch (e) {
+        alert("Failed to communicate with Serverless Engine. Session halted.");
     }
 }
 
