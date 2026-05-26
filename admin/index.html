@@ -142,9 +142,23 @@ function doPost(e) {
     var action = params.action;
 
     if (action === 'init') {
-      var ss = SpreadsheetApp.create("_HydroStack_Workspace_DB");
-      ss.insertSheet("Modules"); ss.insertSheet("Users"); ss.insertSheet("Forms"); ss.insertSheet("Submissions");
-      var sheet1 = ss.getSheetByName('Sheet1'); if (sheet1) ss.deleteSheet(sheet1);
+      // SELF-HEALING: Search the Admin's Drive for an existing database file
+      var files = DriveApp.getFilesByName("_HydroStack_Workspace_DB");
+      var ss;
+      
+      if (files.hasNext()) {
+        // Safe lock: An existing database was found, recover it instantly!
+        ss = SpreadsheetApp.open(files.next());
+      } else {
+        // First-time setup: Create the master tables from scratch
+        ss = SpreadsheetApp.create("_HydroStack_Workspace_DB");
+        ss.insertSheet("Modules"); 
+        ss.insertSheet("Users"); 
+        ss.insertSheet("Forms"); 
+        ss.insertSheet("Submissions");
+        var sheet1 = ss.getSheetByName('Sheet1'); 
+        if (sheet1) ss.deleteSheet(sheet1);
+      }
       return ContentService.createTextOutput(JSON.stringify({ success: true, spreadsheetId: ss.getId() })).setMimeType(ContentService.MimeType.JSON);
     }
     if (action === 'append') {
