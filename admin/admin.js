@@ -26,10 +26,26 @@ async function launchDashboard() {
 }
 
 // THE UNIFIED APPS SCRIPT RELAY
+// THE UNIFIED APPS SCRIPT RELAY (UPDATED FOR CORS BYPASS)
 async function gasRequest(payload) {
-    // Note: We intentionally do NOT use 'Content-Type: application/json' to bypass CORS preflight checks.
-    const res = await fetch(masterEngineUrl, { method: 'POST', body: JSON.stringify(payload) });
-    return await res.json();
+    try {
+        // We explicitly force text/plain. This bypasses the CORS OPTIONS preflight check entirely.
+        // Google Apps Script will still successfully catch it and parse the JSON string.
+        const res = await fetch(masterEngineUrl, { 
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify(payload) 
+        });
+        
+        return await res.json();
+    } catch (error) {
+        console.error("CORS or Network Error:", error);
+        alert("Connection blocked! Ensure your Google Apps Script is deployed with 'Who has access: Anyone'.");
+        document.getElementById('auth-btn').innerText = "Connect Engine"; // Reset UI button
+        throw error;
+    }
 }
 
 async function initMasterWorkspace() {
