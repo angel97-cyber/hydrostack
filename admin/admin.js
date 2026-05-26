@@ -13,7 +13,17 @@ window.onload = async function () {
 
 document.getElementById('auth-btn').addEventListener('click', async () => {
     const urlInput = document.getElementById('engine-url-input').value.trim();
-    if (!urlInput.startsWith('https://script.google.com/')) return alert("Invalid Engine URL. Please follow the deployment guide.");
+    
+    // STRICT GUARDRAIL: Must be a Google Script URL and MUST end in /exec
+    if (!urlInput.startsWith('https://script.google.com/') || !urlInput.endsWith('/exec')) {
+        return alert("Invalid Engine URL. It must end with '/exec'. Please copy the Web App URL from your deployment.");
+    }
+    
+    // If connecting a NEW engine, wipe the OLD database memory so it builds fresh
+    if (masterEngineUrl !== urlInput) {
+        localStorage.removeItem('hydrostack_master_db');
+        masterSheetId = null;
+    }
     
     masterEngineUrl = urlInput;
     localStorage.setItem('hs_engine_url', masterEngineUrl);
@@ -35,7 +45,7 @@ async function launchDashboard() {
     }
 }
 
-// THE UNIFIED APPS SCRIPT RELAY (WITH CORS BYPASS)
+// THE UNIFIED APPS SCRIPT RELAY (WITH ENHANCED ERROR DETECTION)
 async function gasRequest(payload) {
     try {
         const res = await fetch(masterEngineUrl, { 
@@ -43,7 +53,15 @@ async function gasRequest(payload) {
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload) 
         });
-        return await res.json();
+        
+        // Catch Google HTML error pages (like login screens or 404s) before they crash the app
+        const textResponse = await res.text();
+        try {
+            return JSON.parse(textResponse);
+        } catch (parseError) {
+            console.error("CRITICAL: Google returned HTML instead of JSON. Raw response:", textResponse);
+            throw new Error("Invalid response from Google. Deployment settings are likely incorrect.");
+        }
     } catch (error) {
         console.error("Network relay failed:", error);
         throw error;
@@ -69,12 +87,22 @@ async function initMasterWorkspace() {
             masterSheetId = res.spreadsheetId;
             localStorage.setItem('hydrostack_master_db', masterSheetId);
             loadDashboardData();
+            document.getElementById('auth-btn').innerText = "Connect Workspace"; // Reset button
         } else {
-            alert("Engine initialization rejected. Verify your Google Deployment configuration.");
+            alert("Engine initialization rejected: " + (res.error || "Unknown Error"));
+            resetLoginState();
         }
     } catch (e) {
-        alert("Failed to communicate with Serverless Engine. Session halted.");
+        alert("Connection Blocked! Make sure your URL ends in '/exec' and your deployment access is set to 'Anyone'.");
+        resetLoginState();
     }
+}
+
+// Helper to kick user back to login safely if it fails
+function resetLoginState() {
+    document.getElementById('auth-btn').innerText = "Connect Workspace";
+    document.getElementById('dashboard-screen').classList.remove('active');
+    document.getElementById('login-screen').classList.add('active');
 }
 
 async function appendRowToSheet(tabName, valuesArray) {
