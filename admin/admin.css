@@ -1277,3 +1277,28 @@ hr {
     padding-top: 8pt;
   }
 }
+/* FORCE DROPDOWN OPTIONS TO MATCH THEME (Fixes browser default whiteouts) */
+select option {
+    background: var(--bg-dark);
+    color: var(--text-main);
+}
+
+/* ─── PDF LIGHT MODE TRICK ───────────────────────────────────────── */
+/* html2pdf takes a literal screenshot. We force high-contrast colors right before it fires */
+.pdf-light-mode {
+    background: #ffffff !important;
+    color: #111827 !important;
+}
+.pdf-light-mode h3, .pdf-light-mode .section-title { color: #111827 !important; }
+.pdf-light-mode .data-table th {
+    background: #F3F4F6 !important;
+    color: #374151 !important;
+    border-bottom: 2px solid #111827 !important;
+}
+.pdf-light-mode .data-table td {
+    color: #1F2937 !important;
+    border-color: #E5E7EB !important;
+}
+.pdf-light-mode .report-meta-row span, .pdf-light-mode .pdf-watermark {
+    color: #6B7280 !important;
+}

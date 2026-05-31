@@ -382,5 +382,20 @@ function copyEngineCode() {
 function showRefreshToast() { document.getElementById('sync-toast').classList.remove('hidden'); }
 function generatePDF() {
     const element = document.getElementById('pdf-export-area');
-    html2pdf().set({ margin: 10, filename: 'HydroStack_Report.pdf', jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+    
+    // 1. Force the element into dark-text mode for the screenshot
+    element.classList.add('pdf-light-mode');
+    
+    const opt = {
+        margin: 10,
+        filename: 'HydroStack_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, backgroundColor: '#ffffff' }, // Force white background
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // 2. Generate PDF, then instantly remove the class to restore the dark UI
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.classList.remove('pdf-light-mode');
+    });
 }

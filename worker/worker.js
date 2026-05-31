@@ -158,10 +158,36 @@ function renderFormUI() {
 
 
 // Helper to convert files to Base64
-const toBase64 = file => new Promise((resolve, reject) => {
+// Smart Image Compressor to prevent LocalStorage 5MB crashes
+const processFile = (file) => new Promise((resolve, reject) => {
+    // If it's a PDF or non-image, bypass compression
+    if (!file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        return;
+    }
+    
+    // Aggressively compress images for field ops
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
+    reader.onload = event => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1000; // Resize large images
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            // Convert to JPEG at 60% quality (massive size reduction, visually identical)
+            resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+        };
+    };
     reader.onerror = error => reject(error);
 });
 
@@ -187,11 +213,11 @@ document.getElementById('submit-log-btn').addEventListener('click', async () => 
             if (fileInput.files.length > 0) {
                 let fileUrls = [];
                 for(let file of fileInput.files) {
-                    let base64 = await toBase64(file);
-                    // Flag it. If online, syncPendingLogs will immediately upload it to Google Drive.
+                    let base64 = await processFile(file); // Use the new compressor!
                     fileUrls.push(`[PENDING_UPLOAD]${file.name}|${file.type}|${base64}`); 
                 }
-                value = fileUrls.join(' , ');
+                // We MUST join with ' | ' so the Admin dashboard neatly stacks them
+                value = fileUrls.join(' | ');
             } else {
                 value = 'No files attached';
             }
@@ -260,7 +286,7 @@ async function syncPendingLogs() {
                                 cleanUrls.push(rawStr);
                             }
                         }
-                        parts[k] = `${fieldLabel}: ${cleanUrls.join(' , ')}`;
+                        parts[k] = `${fieldLabel}: ${cleanUrls.join(' | ')}`;
                     }
                 }
                 queue[j].dataString = parts.join('  |  ');
