@@ -1,0 +1,8 @@
+- [ ] Install React, Tailwind, and Vite packages
+- [ ] Scaffold build config files (`vite.config.ts`, `postcss.config.js`, `tailwind.config.js`, `index.html`)
+- [ ] Modify `package.json` scripts
+- [ ] Implement `src/main.tsx` and `src/index.css`
+- [ ] Implement `src/App.tsx` with all 4 sizing engines and dynamic SVG visualizers
+- [ ] Verify clean compilation (`npm run build`)
+- [ ] Run the Vite dev server locally and verify
+- [ ] Update `walkthrough.md` with the final validation summary
