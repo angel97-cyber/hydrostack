@@ -255,7 +255,7 @@ export default function App() {
       timeStep_dt: state.surgeDt,
       duration: state.surgeDuration,
       initialZ: 0.0,
-      initialQ: 0.0,
+      initialQ: state.desanderDesignFlow,
       isAcceptance: false
     });
 
@@ -1276,7 +1276,14 @@ export default function App() {
                     <div>Total Steel Penstock Weight: {calcs.penstockSteelWeight.toFixed(1)} tonnes</div>
                     <div>Anchor sliding FoS: {calcs.anchorBlock.slidingFoS.toFixed(2)}</div>
                     <div>Anchor overturning FoS: {calcs.anchorBlock.overturningFoS.toFixed(2)}</div>
-                    <div>Anchor Status: {calcs.anchorBlock.isStable ? 'STABLE' : 'UNSTABLE'}</div>
+                    <div className={calcs.anchorBlock.slidingFoS < 1.5 || calcs.anchorBlock.overturningFoS < 1.5 ? "text-rose-500 font-bold animate-pulse col-span-2" : ""}>
+                      Anchor Status: {calcs.anchorBlock.isStable ? 'STABLE' : 'UNSTABLE'}
+                    </div>
+                    {(calcs.anchorBlock.slidingFoS < 1.5 || calcs.anchorBlock.overturningFoS < 1.5) && (
+                      <div className="col-span-2 text-rose-400 text-[10px] mt-1 border border-rose-500/25 bg-rose-500/5 p-2 rounded leading-relaxed">
+                        ⚠️ Warning: Restoring gravity moments are insufficient. Increase anchor block width (B) or length (L) in the left panel to secure the pipe.
+                      </div>
+                    )}
                   </>
                 )}
                 {activeStep === 4 && (

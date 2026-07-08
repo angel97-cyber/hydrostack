@@ -1,0 +1,9 @@
+node_modules/
+dist/
+Hydrosoft/
+Doc1.txt
+HYDROSOFT_ANALYSIS.md
+HYDRO_SOFT_FINAL.txt
+problems_hydrosoft_30.txt
+stitch_hydrostack_engineering_design_suite/
+package-lock.json
